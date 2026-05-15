@@ -773,13 +773,28 @@
     }
   </style>
   <script>
+    document.documentElement.setAttribute("data-math", "loading");
     window.MathJax = {
       tex: {
         inlineMath: [["$", "$"], ["\\(", "\\)"]],
         displayMath: [["$$", "$$"], ["\\[", "\\]"]]
       },
-      svg: { fontCache: "global" }
+      svg: { fontCache: "global" },
+      startup: {
+        pageReady() {
+          return MathJax.startup.defaultPageReady().then(() => {
+            document.documentElement.setAttribute("data-math", "ready");
+          });
+        }
+      }
     };
+    window.addEventListener("load", () => {
+      window.setTimeout(() => {
+        if (document.documentElement.getAttribute("data-math") !== "ready") {
+          document.documentElement.setAttribute("data-math", "fallback");
+        }
+      }, 4500);
+    });
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
@@ -797,6 +812,7 @@
       </div>
       <nav class="toc" id="toc">
         <a href="#overview">总览</a>
+        <a href="#source-note">教材顺序整理</a>
         <a href="#model">1. VCO 与闭环模型</a>
         <a href="#bandwidth">2. 传递函数与噪声带宽</a>
         <a href="#response">3. 暂态与稳态响应</a>
@@ -869,6 +885,81 @@
           </div>
         </div>
 
+        <section id="source-note">
+          <div class="section-head">
+            <div>
+              <h2>教材顺序整理</h2>
+              <p>先把教材第 164-172 页的原始推进顺序拉直，再进入后面的逐式推导和可调 demo。这样读的时候不会只有结论，没有上下文。</p>
+            </div>
+            <span class="tag">164-172 页</span>
+          </div>
+
+          <div class="note-band">
+            已补充章节笔记 <code>chapters/第04章_信号捕获和跟踪/笔记/4.2.1 基本的锁相环.md</code>。该文件按原节顺序整理，并把全部公式的推导细节写全；本页保留图示、公式链和交互演示。
+          </div>
+
+          <ul class="logic-list">
+            <li><span>1</span><div>图 4.28 先定义 PLL 的基本闭环：鉴相器给出相位差，环路滤波器塑造动态特性，VCO/NCO 负责把控制量重新积分成相位输出。</div></li>
+            <li><span>2</span><div>式 <code>(4.110)</code>-<code>(4.119)</code> 把 VCO 的积分本质、闭环解、相位误差函数一次性写完，核心就是 $H(s)$ 和 $E(s)$ 互补。</div></li>
+            <li><span>3</span><div>式 <code>(4.120)</code>-<code>(4.121)</code> 引入等效噪声带宽 $B_n$ 和 n 阶通式，说明“滤波器决定闭环性能”。</div></li>
+            <li><span>4</span><div>表 4.1 给出 1 阶、2 阶、3 阶 PLL 的带宽计算模板，后面的各阶推导都在往这张表里代系数。</div></li>
+            <li><span>5</span><div>图 4.29 把输入分成相位阶跃、频率阶跃和频率斜升三类；在导航问题里，它们分别映射到距离、速度和加速度变化。</div></li>
+            <li><span>6</span><div>式 <code>(4.122)</code>-<code>(4.123)</code> 把分析工作分成两类：暂态看“多久跟上”，稳态看“最后还差多少”。</div></li>
+            <li><span>7</span><div>式 <code>(4.124)</code>-<code>(4.137)</code> 依次分析 1 阶、2 阶、3 阶环：阶数越高，能无偏跟踪的动态阶次越高，但稳定性和参数整定也更难。</div></li>
+            <li><span>8</span><div>图 4.30、表 4.2 以及式 <code>(4.138)</code>-<code>(4.140)</code> 把结果统一到工程实现：按自然频率和环路系数整定，最终落到“动态应力”和“噪声带宽”的折中。</div></li>
+          </ul>
+
+          <div class="formula-card">
+            <strong>图 4.29 的三类输入与 s 域表达</strong>
+            $$ \theta_i(s)=\frac{\theta_0}{s},\qquad \theta_i(s)=\frac{\Delta\omega}{s^2},\qquad \theta_i(s)=\frac{\alpha}{s^3} $$
+            <p>三者依次对应相位阶跃、频率阶跃和频率斜升。后面 1 阶、2 阶、3 阶环的稳态误差都是把这三个输入代进终值定理得到的。</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>教材页序</th>
+                  <th>核心内容</th>
+                  <th>公式/图表</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>164 页</td>
+                  <td>基本框图、相位差定义、VCO 的时域和频域模型</td>
+                  <td>图 4.28，式 (4.110)-(4.114)</td>
+                </tr>
+                <tr>
+                  <td>165 页</td>
+                  <td>闭环解、误差函数、带宽定义与 n 阶通式</td>
+                  <td>式 (4.115)-(4.121)，表 4.1</td>
+                </tr>
+                <tr>
+                  <td>166-167 页</td>
+                  <td>三种常见输入、暂态/稳态分析方法、1 阶环</td>
+                  <td>图 4.29，式 (4.122)-(4.126)</td>
+                </tr>
+                <tr>
+                  <td>168-170 页</td>
+                  <td>2 阶环的标准化参数、带宽与三类输入稳态误差</td>
+                  <td>式 (4.127)-(4.132)</td>
+                </tr>
+                <tr>
+                  <td>170-171 页</td>
+                  <td>3 阶环的滤波器形式、带宽、稳定性条件</td>
+                  <td>式 (4.133)-(4.137)</td>
+                </tr>
+                <tr>
+                  <td>171-172 页</td>
+                  <td>工程实现系数、N 阶通式、动态应力与带宽折中</td>
+                  <td>图 4.30，表 4.2，式 (4.138)-(4.140)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section id="model">
           <div class="section-head">
             <div>
@@ -879,52 +970,49 @@
           </div>
 
           <div class="pll-diagram" aria-label="基本锁相环功能框图">
-            <svg viewBox="0 0 980 404" role="img">
+            <svg viewBox="0 0 760 320" role="img">
               <defs>
                 <marker id="pllArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                   <path d="M 0 0 L 10 5 L 0 10 z" fill="#111"></path>
                 </marker>
               </defs>
-              <rect x="1" y="1" width="978" height="402" fill="#fff" stroke="#cfcfcf"></rect>
-              <line x1="1" y1="186" x2="979" y2="186" stroke="#d8d8d8" stroke-width="1.2"></line>
+              <text x="266" y="58" fill="#111" font-size="22" text-anchor="middle" font-family="serif">鉴相器</text>
+              <text x="460" y="58" fill="#111" font-size="22" text-anchor="middle" font-family="serif">环路滤波器</text>
+              <text x="268" y="272" fill="#111" font-size="22" text-anchor="middle" font-family="serif">压控振荡器</text>
 
-              <text x="325" y="34" fill="#111" font-size="24" font-family="serif">鉴相器</text>
-              <text x="520" y="34" fill="#111" font-size="24" font-family="serif">环路滤波器</text>
-              <text x="256" y="358" fill="#111" font-size="24" font-family="serif">压控振荡器</text>
+              <text x="58" y="115" fill="#111" font-size="21" font-family="serif">v<tspan baseline-shift="sub" font-size="15">i</tspan>(t)</text>
+              <line x1="112" y1="108" x2="254" y2="108" stroke="#111" stroke-width="1.9" marker-end="url(#pllArrow)"></line>
+              <text x="188" y="96" fill="#111" font-size="18" font-family="serif">θ<tspan baseline-shift="sub" font-size="13">i</tspan></text>
 
-              <text x="28" y="94" fill="#111" font-size="22" font-family="serif">v<tspan baseline-shift="sub" font-size="16">i</tspan>(t)</text>
-              <line x1="28" y1="82" x2="264" y2="82" stroke="#111" stroke-width="2.2" marker-end="url(#pllArrow)"></line>
-              <text x="176" y="68" fill="#111" font-size="20" font-family="serif">θ<tspan baseline-shift="sub" font-size="14">i</tspan></text>
+              <circle cx="268" cy="108" r="14" fill="#fff" stroke="#111" stroke-width="1.7"></circle>
+              <line x1="259" y1="108" x2="277" y2="108" stroke="#111" stroke-width="1.4"></line>
+              <line x1="268" y1="99" x2="268" y2="117" stroke="#111" stroke-width="1.4"></line>
+              <text x="244" y="95" fill="#111" font-size="18" font-family="serif">+</text>
+              <text x="242" y="136" fill="#111" font-size="18" font-family="serif">−</text>
 
-              <circle cx="288" cy="82" r="24" fill="#fff" stroke="#111" stroke-width="2"></circle>
-              <line x1="276" y1="82" x2="300" y2="82" stroke="#111" stroke-width="1.8"></line>
-              <line x1="288" y1="70" x2="288" y2="94" stroke="#111" stroke-width="1.8"></line>
-              <text x="234" y="62" fill="#111" font-size="20" font-family="serif">+</text>
-              <text x="236" y="126" fill="#111" font-size="20" font-family="serif">−</text>
+              <line x1="282" y1="108" x2="400" y2="108" stroke="#111" stroke-width="1.9" marker-end="url(#pllArrow)"></line>
+              <text x="328" y="96" fill="#111" font-size="20" font-family="serif">θ̂</text>
 
-              <line x1="312" y1="82" x2="492" y2="82" stroke="#111" stroke-width="2.2" marker-end="url(#pllArrow)"></line>
-              <text x="370" y="68" fill="#111" font-size="22" font-family="serif">θ̂</text>
+              <rect x="400" y="84" width="120" height="48" fill="#fff" stroke="#111" stroke-width="1.6"></rect>
+              <text x="460" y="114" fill="#111" font-size="28" text-anchor="middle" font-family="serif" font-style="italic">F(s)</text>
 
-              <rect x="492" y="42" width="170" height="80" fill="#fff" stroke="#111" stroke-width="1.8"></rect>
-              <text x="563" y="92" fill="#111" font-size="34" text-anchor="middle" font-family="serif" font-style="italic">F(s)</text>
+              <line x1="520" y1="108" x2="552" y2="108" stroke="#111" stroke-width="1.9"></line>
+              <circle cx="552" cy="108" r="3.5" fill="#111"></circle>
+              <line x1="552" y1="108" x2="612" y2="108" stroke="#111" stroke-width="1.9" marker-end="url(#pllArrow)"></line>
+              <text x="586" y="95" fill="#111" font-size="21" font-family="serif">v<tspan baseline-shift="sub" font-size="15">o</tspan>(t)</text>
 
-              <line x1="662" y1="82" x2="842" y2="82" stroke="#111" stroke-width="2.2"></line>
-              <circle cx="842" cy="82" r="4.5" fill="#111"></circle>
-              <line x1="842" y1="82" x2="938" y2="82" stroke="#111" stroke-width="2.2" marker-end="url(#pllArrow)"></line>
-              <text x="870" y="68" fill="#111" font-size="22" font-family="serif">v<tspan baseline-shift="sub" font-size="16">o</tspan>(t)</text>
+              <line x1="552" y1="108" x2="552" y2="206" stroke="#111" stroke-width="1.8"></line>
+              <line x1="552" y1="206" x2="328" y2="206" stroke="#111" stroke-width="1.8" marker-end="url(#pllArrow)"></line>
 
-              <line x1="842" y1="82" x2="842" y2="270" stroke="#111" stroke-width="2.1"></line>
-              <line x1="842" y1="270" x2="416" y2="270" stroke="#111" stroke-width="2.1" marker-end="url(#pllArrow)"></line>
+              <rect x="208" y="176" width="120" height="60" fill="#fff" stroke="#111" stroke-width="1.6"></rect>
+              <text x="268" y="210" fill="#111" font-size="28" text-anchor="middle" font-family="serif" font-style="italic">K</text>
+              <line x1="255" y1="214" x2="281" y2="214" stroke="#111" stroke-width="1.4"></line>
+              <text x="268" y="230" fill="#111" font-size="28" text-anchor="middle" font-family="serif" font-style="italic">s</text>
 
-              <rect x="212" y="244" width="204" height="92" fill="#fff" stroke="#111" stroke-width="1.8"></rect>
-              <text x="314" y="297" fill="#111" font-size="34" text-anchor="middle" font-family="serif" font-style="italic">K</text>
-              <line x1="286" y1="304" x2="342" y2="304" stroke="#111" stroke-width="1.6"></line>
-              <text x="314" y="327" fill="#111" font-size="34" text-anchor="middle" font-family="serif" font-style="italic">s</text>
+              <line x1="268" y1="176" x2="268" y2="122" stroke="#111" stroke-width="1.8" marker-end="url(#pllArrow)"></line>
+              <text x="280" y="149" fill="#111" font-size="20" font-family="serif">θ<tspan baseline-shift="sub" font-size="15">l</tspan></text>
 
-              <line x1="314" y1="244" x2="314" y2="106" stroke="#111" stroke-width="2.1" marker-end="url(#pllArrow)"></line>
-              <text x="331" y="136" fill="#111" font-size="22" font-family="serif">θ<tspan baseline-shift="sub" font-size="16">l</tspan></text>
-
-              <text x="490" y="392" fill="#111" font-size="22" text-anchor="middle" font-family="serif">图 4.28　基本的锁相环功能框图</text>
+              <text x="380" y="308" fill="#111" font-size="20" text-anchor="middle" font-family="serif">图 4.28　基本的锁相环功能框图</text>
             </svg>
           </div>
 
@@ -935,12 +1023,14 @@
               $$ \theta_{\mathrm{vco}}(t)=\int_0^t f_{\mathrm{vco}}(\tau)\,d\tau \tag{4.111} $$
               $$ \theta_{\mathrm{vco}}(s)=\frac{k}{s}U(s) \tag{4.112} $$
               <p>频率积分得到相位，因此 VCO/NCO 在相位环里天然贡献一个 $1/s$ 积分器。</p>
+              <p>这一步也是后面所有“环路阶数 = 闭环积分器数目”的起点：哪怕滤波器里没有积分支路，VCO 本身也已经提供了 1 个积分器。</p>
             </div>
             <div class="formula-card">
               <strong>环路滤波器接收相位误差</strong>
               $$ v_o(s)=\hat\theta(s)F(s)=\left[\theta_i(s)-\theta_l(s)\right]F(s) \tag{4.113} $$
               $$ \theta_l(s)=\frac{k}{s}\left[\theta_i(s)-\theta_l(s)\right]F(s) \tag{4.114} $$
               <p>把滤波器输出送入 VCO，并用本地相位做负反馈，闭环方程就出现了。</p>
+              <p>式 $(4.114)$ 的结构很关键：左边是本地相位，右边是“输入相位减去本地相位”再乘上开环增益 $\dfrac{kF(s)}{s}$，这就是标准负反馈闭环。</p>
             </div>
             <div class="formula-card">
               <strong>闭环解和相位误差</strong>
@@ -950,6 +1040,7 @@
               $$ E(s)=\frac{\hat\theta(s)}{\theta_i(s)}=\frac{s}{s+kF(s)} \tag{4.118} $$
               $$ E(s)=1-H(s) \tag{4.119} $$
               <p>$H(s)$ 看“本地相位跟得上多少”，$E(s)$ 看“剩下多少相位误差”。二者互补。</p>
+              <p>从式 $(4.115)$ 到式 $(4.116)$ 的推法只有一步：直接用 $\hat\theta(s)=\theta_i(s)-\theta_l(s)$ 代回去，再把分子通分成 $s$。因此误差传递函数总会比闭环传递函数多保留一个 $s$ 因子。</p>
             </div>
           </div>
 
@@ -1155,6 +1246,7 @@
               $$ H(s)=\frac{k}{s+k}, \qquad E(s)=\frac{s}{s+k} $$
               $$ B_n=\frac{k}{4} \tag{4.124} $$
               <p>带宽随 $k$ 线性增大：响应变快，噪声也放进来更多。</p>
+              <p>这里是把 1 阶模板 $H(s)=\dfrac{a_0}{b_0+b_1s}$ 中的 $a_0=k,b_0=k,b_1=1$ 直接代入表 4.1，立刻得到 $B_n=\dfrac{a_0^2}{4b_0b_1}=\dfrac{k}{4}$。</p>
             </div>
             <div class="formula-card">
               <strong>三种输入的稳态相差</strong>
@@ -1163,6 +1255,7 @@
               \hat\theta_{e,\infty}=\lim_{s\to0}sE(s)\frac{\Delta\omega}{s^2}=\frac{\Delta\omega}{k} \tag{4.125} $$
               $$ \theta_i(t)=\frac{1}{2}\alpha t^2\Rightarrow
               \hat\theta_{e,\infty}=\lim_{s\to0}sE(s)\frac{\alpha}{s^3}=\infty \tag{4.126} $$
+              <p>终值定理里，1 阶误差函数只带 1 个 $s$，因此只能抵消掉相位阶跃输入的 $1/s$；遇到频率阶跃的 $1/s^2$ 时会留下常值误差，遇到频率斜升的 $1/s^3$ 时误差就发散。</p>
             </div>
           </div>
 
@@ -1219,12 +1312,14 @@
               E(s)=\frac{s^2}{s^2+\frac{k\tau_1}{\tau_2}s+\frac{k}{\tau_2}} $$
               $$ s^2+\frac{k\tau_1}{\tau_2}s+\frac{k}{\tau_2}\triangleq s^2+2\zeta\omega_ns+\omega_n^2 \tag{4.127} $$
               $$ \omega_n=\sqrt{\frac{k}{\tau_2}},\qquad \zeta=\frac{1}{2}\omega_n\tau_1 \tag{4.128} $$
+              <p>分母归一化的目的，是把电路参数 $(k,\tau_1,\tau_2)$ 改写成控制里更直观的 $(\omega_n,\zeta)$。这样一眼就能看出自然频率和阻尼是怎么影响环路的。</p>
             </div>
             <div class="formula-card">
               <strong>闭环形式与噪声带宽</strong>
               $$ H(s)=\frac{2\zeta\omega_ns+\omega_n^2}{s^2+2\zeta\omega_ns+\omega_n^2} $$
               $$ B_n=\frac{\omega_n}{8}\left(4\zeta+\frac{1}{\zeta}\right) \tag{4.129} $$
               <p>$\zeta=0.707$ 时，$B_n\approx0.53\omega_n$。</p>
+              <p>这一步是把 $a_1=2\zeta\omega_n,a_0=\omega_n^2,b_2=1,b_1=2\zeta\omega_n,b_0=\omega_n^2$ 代进表 4.1 的 2 阶公式，化简后得到的。</p>
             </div>
             <div class="formula-card">
               <strong>三种输入的稳态相差</strong>
@@ -1234,6 +1329,7 @@
               \hat\theta_{e,\infty}=\lim_{s\to0}\frac{\Delta\omega s}{s^2+2\zeta\omega_ns+\omega_n^2}=0 \tag{4.131} $$
               $$ \theta_i(t)=\frac{1}{2}\alpha t^2\Rightarrow
               \hat\theta_{e,\infty}=\lim_{s\to0}\frac{\alpha}{s^2+2\zeta\omega_ns+\omega_n^2}=\frac{\alpha}{\omega_n^2} \tag{4.132} $$
+              <p>2 阶误差函数含有 $s^2$，所以能把相位阶跃和频率阶跃都抵消掉；但对频率斜升只够抵消到常值，最终剩下 $\alpha/\omega_n^2$。</p>
             </div>
           </div>
 
@@ -1291,6 +1387,7 @@
             <div class="formula-card">
               <strong>3 阶环等效噪声带宽</strong>
               $$ B_n=\frac{k\tau_1}{4}+\frac{k\tau_2^2}{4(k\tau_1\tau_2-\tau_3)} \tag{4.133} $$
+              <p>这一步是把 $a_2=k\tau_1,a_1=k\tau_2,a_0=k\tau_3$ 和 $b_3=1,b_2=k\tau_1,b_1=k\tau_2,b_0=k\tau_3$ 代入表 4.1 的 3 阶公式，再整理成工程上更好读的形式。</p>
             </div>
             <div class="formula-card">
               <strong>三种输入的稳态相差</strong>
@@ -1298,6 +1395,7 @@
               $$ \theta_i(t)=\Delta\omega t\,u(t)\Rightarrow \hat\theta_{e,\infty}=0 \tag{4.135} $$
               $$ \theta_i(t)=\frac{1}{2}\alpha t^2\Rightarrow \hat\theta_{e,\infty}=0 \tag{4.136} $$
               $$ k\tau_1>0,\quad k\tau_2>0,\quad k\tau_3>0,\quad k\tau_1\cdot k\tau_2>k\tau_3 \tag{4.137} $$
+              <p>3 阶误差函数带有 $s^3$，因此三类输入都能无偏跟踪；但与此同时，闭环特征多项式已经升到三阶，稳定性不再自动满足，必须额外检查劳斯判据。</p>
             </div>
           </div>
 
@@ -1359,6 +1457,7 @@
               \frac{s^{N+1}\theta_i(s)}{s^N+a_0s^{N-1}+a_1s^{N-2}+\cdots+a_{N-1}}
               =\lim_{t\to\infty}\frac{d^N\theta_i(t)/dt^N}{\omega_n^N} \tag{4.140} $$
               <p>只要输入相位的第 $N$ 阶导数在稳态不是 0，N 阶环就会留下与 $\omega_n^{-N}$ 成正比的稳态误差；若动态阶次更高，误差会发散。</p>
+              <p>式 $(4.140)$ 的关键就在于：当 $s\to0$ 时，分母只剩常数项 $a_{N-1}=\omega_n^N$。因此自然频率越高，动态误差越小；但因为 $B_n$ 也随 $\omega_n$ 增长，热噪声会一起变大。</p>
             </div>
           </div>
 
@@ -1426,7 +1525,7 @@
           </div>
 
           <div class="footer">
-            页面公式依据本仓库第 4 章 PDF 的 4.2.1 节整理；文字为学习笔记式重述，演示为线性化模型的工程直觉辅助。
+            页面公式依据本仓库第 4 章 PDF 的 4.2.1 节整理；完整顺序笔记与逐式推导已写入章节笔记文件，本页保留交互式讲解和 demo。
           </div>
         </section>
       </div>
@@ -2025,7 +2124,6 @@
       initControls();
       initScroll();
       updateAll();
-      if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
     });
   </script>
 </body>

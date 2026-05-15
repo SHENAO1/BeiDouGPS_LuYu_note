@@ -1,0 +1,371 @@
+.note-page {
+  width: min(1380px, calc(100% - 40px));
+}
+
+.note-intro {
+  display: grid;
+  gap: 18px;
+}
+
+.note-intro-copy {
+  display: grid;
+  gap: 10px;
+  max-width: 70ch;
+}
+
+.note-intro-copy h1,
+.note-intro-copy p {
+  margin: 0;
+}
+
+.note-intro-copy h1 {
+  font-size: clamp(34px, 4.8vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.note-intro-copy p {
+  color: var(--ink-soft);
+  font-size: 17px;
+}
+
+.note-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+.note-meta span {
+  padding: 9px 12px;
+  border: 1px solid rgba(12, 36, 57, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+.note-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.note-sidebar,
+.note-article {
+  min-width: 0;
+}
+
+.note-sidebar {
+  position: sticky;
+  top: 106px;
+  display: grid;
+  gap: 14px;
+}
+
+.note-sidebar h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.note-sidebar p {
+  margin: 0;
+  color: var(--muted);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+}
+
+.note-toc {
+  display: grid;
+  gap: 6px;
+}
+
+.note-toc-shell {
+  border: 1px solid rgba(12, 36, 57, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.note-toc-shell summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  color: var(--ink);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.note-toc-shell summary::-webkit-details-marker {
+  display: none;
+}
+
+.note-toc-shell summary::after {
+  content: "收起";
+  float: right;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.note-toc-shell:not([open]) summary::after {
+  content: "展开";
+}
+
+.note-toc-shell .note-toc {
+  padding: 0 10px 10px;
+}
+
+.note-toc a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 12px;
+  color: var(--ink-soft);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.note-toc a:hover,
+.note-toc a.is-active {
+  color: var(--ink);
+  background: rgba(12, 36, 57, 0.06);
+}
+
+.note-toc a.level-3 {
+  padding-left: 22px;
+  color: var(--muted);
+}
+
+.note-article .note-prose {
+  min-width: 0;
+}
+
+.note-prose h1,
+.note-prose h2,
+.note-prose h3,
+.note-prose h4 {
+  margin: 0;
+  color: var(--ink);
+}
+
+.note-prose section.level1 > h1 {
+  margin-bottom: 18px;
+  font-size: clamp(34px, 4.4vw, 50px);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+}
+
+.note-prose section.level2,
+.note-prose section.level3,
+.note-prose section.level4 {
+  margin-top: 28px;
+}
+
+.note-prose h2 {
+  margin-bottom: 16px;
+  font-size: clamp(28px, 3.6vw, 38px);
+  line-height: 1.18;
+  letter-spacing: -0.03em;
+}
+
+.note-prose h3 {
+  margin-bottom: 12px;
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.note-prose h4 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.note-prose p,
+.note-prose li {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 16px;
+}
+
+.note-prose p + p,
+.note-prose p + ul,
+.note-prose p + ol,
+.note-prose ul + p,
+.note-prose ol + p,
+.note-prose blockquote + p,
+.note-prose table + p,
+.note-prose p + .math,
+.note-prose .math + p,
+.note-prose .math + .math,
+.note-prose ul + ul,
+.note-prose ol + ol {
+  margin-top: 14px;
+}
+
+.note-prose ul,
+.note-prose ol {
+  margin: 14px 0 0;
+  padding-left: 24px;
+}
+
+.note-prose li + li {
+  margin-top: 8px;
+}
+
+.note-prose blockquote {
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(12, 36, 57, 0.08);
+  border-left: 4px solid var(--cyan);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.note-prose blockquote p {
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.note-prose code {
+  padding: 0.14em 0.42em;
+  border-radius: 8px;
+  background: rgba(12, 36, 57, 0.06);
+  color: var(--ink);
+  font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.note-prose pre {
+  overflow: auto;
+  margin: 14px 0 0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #0d2233;
+}
+
+.note-prose pre code {
+  padding: 0;
+  background: transparent;
+  color: #eff8fb;
+}
+
+.note-prose table {
+  width: 100%;
+  margin-top: 14px;
+  border-collapse: collapse;
+  min-width: 680px;
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+}
+
+.note-prose .table-wrap,
+.note-prose table {
+  overflow-x: auto;
+}
+
+.note-prose thead th {
+  color: #eff8fb;
+  background: linear-gradient(135deg, var(--night), var(--night-2));
+}
+
+.note-prose th,
+.note-prose td {
+  padding: 12px 14px;
+  border: 1px solid rgba(12, 36, 57, 0.1);
+  text-align: left;
+  vertical-align: top;
+}
+
+.note-prose tbody tr:nth-child(odd) td {
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.note-prose tbody tr:nth-child(even) td {
+  background: rgba(248, 252, 252, 0.8);
+}
+
+.note-prose hr {
+  margin: 30px 0;
+  border: 0;
+  border-top: 1px solid rgba(12, 36, 57, 0.12);
+}
+
+.note-prose a {
+  color: var(--cyan-deep);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.note-prose mjx-container {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.note-prose mjx-container[display="true"] {
+  display: block;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 0 4px;
+}
+
+.note-prose .math.display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.note-prose img,
+.note-prose svg {
+  width: 100%;
+  height: auto;
+}
+
+.note-prose .level1 > :first-child,
+.note-prose .level2 > :first-child,
+.note-prose .level3 > :first-child,
+.note-prose .level4 > :first-child {
+  scroll-margin-top: 110px;
+}
+
+@media (max-width: 1120px) {
+  .note-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .note-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .note-page {
+    width: min(100%, calc(100% - 24px));
+  }
+
+  .note-intro-copy h1 {
+    line-height: 1.1;
+  }
+
+  .note-prose p,
+  .note-prose li {
+    font-size: 15px;
+  }
+
+  .note-prose table {
+    min-width: 560px;
+  }
+
+  .note-toc-shell summary {
+    padding: 12px;
+  }
+}
