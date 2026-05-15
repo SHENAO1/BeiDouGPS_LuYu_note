@@ -504,6 +504,120 @@ input {
   gap: 18px;
 }
 
+.module-grid,
+.video-module-grid,
+.template-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.module-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.video-module-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.template-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.module-card,
+.video-card,
+.template-card,
+.module-bridge-card {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid rgba(12, 36, 57, 0.1);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.module-card h3,
+.video-card h3,
+.template-card h3 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.module-card p,
+.module-card li,
+.video-card p,
+.video-card li,
+.template-card p,
+.module-bridge-card p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.module-card ul,
+.video-card ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.module-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 14px;
+}
+
+.module-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 11px;
+  border-radius: 999px;
+  color: #0a2639;
+  background: rgba(88, 121, 76, 0.16);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.module-status.is-draft {
+  background: rgba(222, 155, 43, 0.18);
+}
+
+.module-status.is-upcoming {
+  background: rgba(212, 108, 88, 0.18);
+}
+
+.module-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+.module-stack span {
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(12, 36, 57, 0.06);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.module-cta {
+  display: inline-flex;
+  align-items: center;
+  color: var(--cyan-deep);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-weight: 700;
+}
+
+.module-card.is-video {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.68)),
+    radial-gradient(circle at 80% 18%, rgba(212, 108, 88, 0.14), transparent 24%);
+}
+
 .note-feature {
   display: grid;
   gap: 16px;
@@ -990,10 +1104,113 @@ input {
   font-size: 14px;
 }
 
+.module-bridge {
+  margin-top: 22px;
+}
+
+.module-bridge-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.68)),
+    radial-gradient(circle at 85% 18%, rgba(32, 193, 207, 0.14), transparent 28%);
+}
+
+.video-feature,
+.template-panel {
+  padding: 18px;
+  border: 1px solid rgba(12, 36, 57, 0.08);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(239, 247, 247, 0.86));
+}
+
+.video-frame {
+  padding: 16px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 18% 24%, rgba(222, 155, 43, 0.18), transparent 20rem),
+    linear-gradient(160deg, #102436 0%, #173c54 100%);
+}
+
+.video-screen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 250px;
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 50% 40%, rgba(32, 193, 207, 0.22), transparent 10rem),
+    linear-gradient(160deg, #081420 0%, #112d42 100%);
+  background-size: 28px 28px, 28px 28px, auto, auto;
+}
+
+.play-dot {
+  position: relative;
+  width: 76px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 18px 46px rgba(7, 21, 34, 0.45);
+}
+
+.play-dot::before {
+  content: "";
+  position: absolute;
+  transform: translate(29px, 20px);
+  border-top: 16px solid transparent;
+  border-bottom: 16px solid transparent;
+  border-left: 24px solid rgba(255, 255, 255, 0.92);
+}
+
+.video-bars {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  left: 24px;
+  display: flex;
+  gap: 8px;
+  align-items: end;
+  height: 56px;
+}
+
+.video-bars span {
+  flex: 1;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(180deg, rgba(244, 201, 116, 0.96), rgba(32, 193, 207, 0.3));
+}
+
+.video-bars span:nth-child(1) { height: 28%; }
+.video-bars span:nth-child(2) { height: 62%; }
+.video-bars span:nth-child(3) { height: 44%; }
+.video-bars span:nth-child(4) { height: 84%; }
+.video-bars span:nth-child(5) { height: 58%; }
+
+.template-panel {
+  margin-top: 22px;
+}
+
+.template-card strong {
+  color: var(--cyan-deep);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+}
+
+.video-card.compact {
+  min-height: 100%;
+}
+
 @media (max-width: 1120px) {
   .hero-panel,
+  .module-grid,
   .index-header,
   .note-grid,
+  .video-module-grid,
+  .template-grid,
   .projects-grid,
   .about-grid,
   .roadmap-grid,
@@ -1072,7 +1289,20 @@ input {
     flex-direction: column;
   }
 
+  .module-head {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .module-bridge-card {
+    grid-template-columns: 1fr;
+  }
+
   .note-feature,
+  .module-card,
+  .video-card,
+  .template-card,
+  .module-bridge-card,
   .note-card,
   .project-card,
   .about-card,

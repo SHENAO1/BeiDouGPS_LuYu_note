@@ -20,6 +20,7 @@
       <nav class="nav-links">
         <a class="is-current" href="index.html">Home</a>
         <a href="notes/">Notes</a>
+        <a href="video-notes/">Video Notes</a>
         <a href="#projects">Projects</a>
         <a href="#about">About</a>
       </nav>
@@ -29,11 +30,11 @@
       <section class="hero-panel" id="top">
         <div class="hero-copy">
           <h1>把北斗 / GPS 软件接收机学习过程，整理成一套可以长期复用的讲义与项目主页。</h1>
-          <p>这个站点不是只放下载文件，而是把教材内容迁移、个人理解、公式推导、图示、实验和项目线索放到同一个站点体系里。当前阶段先完成讲义页与索引页，后续再继续补章节、项目实验和实现记录。</p>
+          <p>这个站点不是只放下载文件，而是把教材内容迁移、个人理解、公式推导、图示、实验、项目线索和视频笔记总结放到同一个站点体系里。当前阶段先完成讲义页、视频笔记入口与索引页，后续再继续补章节、项目实验和实现记录。</p>
 
           <div class="hero-actions">
             <a class="button-primary" href="notes/">进入笔记索引</a>
-            <a class="button-secondary" href="#projects">查看项目方向</a>
+            <a class="button-secondary" href="video-notes/">查看视频笔记模块</a>
           </div>
 
           <div class="hero-metrics" aria-label="站点概览">
@@ -42,12 +43,12 @@
               <span>已整理到站点中的章节讲义：4.1.6 与 4.2.1。</span>
             </article>
             <article>
-              <strong>3</strong>
-              <span>正在规划的项目方向：BOC、GPS L1 C/A、相关特性实验。</span>
+              <strong>4</strong>
+              <span>当前首页已显式预留的内容模块：讲义、视频笔记、项目实验、学习路线。</span>
             </article>
             <article>
               <strong>V1</strong>
-              <span>当前目标是先形成一个稳定可扩展的个人主页与讲义索引结构。</span>
+              <span>当前目标是先形成一个稳定可扩展的个人主页、讲义索引与视频笔记结构。</span>
             </article>
           </div>
         </div>
@@ -95,6 +96,71 @@
               <span></span>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section class="panel" id="modules">
+        <div class="section-head">
+          <div>
+            <h2>内容模块</h2>
+            <p>主页不再只服务于单篇讲义，而是先把后续会长期增长的内容区块明确出来。</p>
+          </div>
+        </div>
+
+        <div class="module-grid">
+          <article class="module-card">
+            <div class="module-head">
+              <div>
+                <div class="eyeline">Core module</div>
+                <h3>章节讲义</h3>
+              </div>
+              <span class="module-status">已接入</span>
+            </div>
+            <p>把教材正文、公式推导、你的语雀理解和可视化解释合成一篇真正可复习的电子讲义，不再依赖原 PDF 或导出 Markdown 来回跳转。</p>
+            <div class="module-stack">
+              <span>教材迁移</span>
+              <span>公式推导</span>
+              <span>交互图示</span>
+              <span>章节索引</span>
+            </div>
+            <a class="module-cta" href="notes/">进入讲义索引</a>
+          </article>
+
+          <article class="module-card is-video">
+            <div class="module-head">
+              <div>
+                <div class="eyeline">Reserved module</div>
+                <h3>视频笔记总结</h3>
+              </div>
+              <span class="module-status is-draft">已预留</span>
+            </div>
+            <p>用于整理课程视频、讲座、实验演示和论文解读，把长视频拆成时间轴、知识点、公式、关键截图和关联讲义，适合之后持续堆内容。</p>
+            <div class="module-stack">
+              <span>时间戳摘要</span>
+              <span>关键公式</span>
+              <span>截图归档</span>
+              <span>关联章节</span>
+            </div>
+            <a class="module-cta" href="video-notes/">打开视频笔记页</a>
+          </article>
+
+          <article class="module-card">
+            <div class="module-head">
+              <div>
+                <div class="eyeline">Applied module</div>
+                <h3>项目与实验</h3>
+              </div>
+              <span class="module-status is-upcoming">扩展中</span>
+            </div>
+            <p>围绕代码、MATLAB 仿真、参数实验和结论图示，形成比仓库目录更适合回顾与展示的项目区。</p>
+            <div class="module-stack">
+              <span>实现记录</span>
+              <span>图像结果</span>
+              <span>参数复现</span>
+              <span>代码入口</span>
+            </div>
+            <a class="module-cta" href="#projects">查看项目方向</a>
+          </article>
         </div>
       </section>
 
@@ -149,7 +215,7 @@
             <article class="note-card">
               <div class="eyeline">Site plan</div>
               <h3>站点建设路线</h3>
-              <p>这不是最终形态，当前重点是先把“讲义页 + 索引页 + 项目入口”稳定下来。后续再引入统一内容模板、项目页面、更多章节与自定义域名上线。</p>
+              <p>这不是最终形态，当前重点是先把“讲义页 + 视频笔记页 + 索引页 + 项目入口”稳定下来。后续再引入统一内容模板、项目页面、更多章节与自定义域名上线。</p>
               <div class="tag-row">
                 <span>静态站点</span>
                 <span>可持续扩展</span>
@@ -220,16 +286,21 @@
           </article>
           <article class="roadmap-card">
             <b>02</b>
+            <strong>补视频笔记</strong>
+            <p>把课程视频、讲座和实验录屏整理成时间轴摘要、重点截图和章节跳转，形成另一条复习入口。</p>
+          </article>
+          <article class="roadmap-card">
+            <b>03</b>
             <strong>补项目页</strong>
             <p>把实验、MATLAB 仿真和实现记录做成可浏览的项目区，而不是只留仓库目录名。</p>
           </article>
           <article class="roadmap-card">
-            <b>03</b>
+            <b>04</b>
             <strong>统一站点壳</strong>
             <p>后续把现有章节页逐步接入统一站点导航、上一篇/下一篇和更新时间系统。</p>
           </article>
           <article class="roadmap-card">
-            <b>04</b>
+            <b>05</b>
             <strong>部署上线</strong>
             <p>站点结构稳定后，直接部署到 GitHub Pages 或 Cloudflare Pages，再接自定义域名。</p>
           </article>
@@ -255,6 +326,7 @@
             <ul>
               <li>首页负责展示方向与入口。</li>
               <li>Notes 负责章节索引与内容发现。</li>
+              <li>Video Notes 负责沉淀课程与讲座视频摘要。</li>
               <li>每篇讲义页负责完整知识展开，不依赖原始导出文件。</li>
             </ul>
           </article>
@@ -263,8 +335,8 @@
             <h3>当前状态</h3>
             <ul>
               <li>已接入 2 篇 HTML 讲义。</li>
-              <li>首页与笔记索引页已经建立。</li>
-              <li>下一阶段是项目页和统一部署。</li>
+              <li>首页、笔记索引页与视频笔记入口已经建立。</li>
+              <li>下一阶段是持续补视频内容、项目页和统一模板。</li>
             </ul>
           </article>
         </div>
@@ -275,6 +347,7 @@
       <span>© <span data-site-year></span> SHENAO1 · GNSS 学习与项目主页</span>
       <nav>
         <a href="notes/">Notes</a>
+        <a href="video-notes/">Video Notes</a>
         <a href="#projects">Projects</a>
         <a href="#about">About</a>
       </nav>
