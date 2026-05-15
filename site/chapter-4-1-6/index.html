@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>4.1.6 基于数据分块和频率补偿的信号捕获</title>
-  <meta name="description" content="GNSS 信号捕获学习页：以课本 4.1.6 为主线，将语雀笔记解释插入对应知识点，并配套可视化交互演示。">
+  <meta name="description" content="GNSS 信号捕获讲义页：将 4.1.6 节内容、图示与个人笔记整理为一份可直接学习和复习的本地讲义。">
   <style>
     :root {
       --ink: #092238;
@@ -829,6 +829,85 @@
       line-height: 1.65;
     }
 
+    .archive-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .archive-card {
+      padding: 22px 24px;
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .56);
+    }
+
+    .archive-card h3 {
+      margin-bottom: 10px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .archive-card > p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 15px;
+    }
+
+    .archive-card details {
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 18px;
+      background: rgba(251, 246, 234, .72);
+    }
+
+    .archive-card summary {
+      cursor: pointer;
+      color: var(--ink);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .page-tape {
+      display: grid;
+      gap: 18px;
+      margin-top: 16px;
+    }
+
+    .page-sheet {
+      padding: 14px;
+      border: 1px solid rgba(9, 34, 56, .1);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .72);
+    }
+
+    .page-sheet img {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(9, 34, 56, .08);
+      background: #fff;
+    }
+
+    .page-sheet figcaption {
+      margin-top: 8px;
+      color: var(--ink-soft);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .archive-frame {
+      width: 100%;
+      height: 1100px;
+      margin-top: 16px;
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 18px;
+      background: #fff;
+    }
+
     .after-demo {
       margin-top: 20px;
       padding-top: 18px;
@@ -1095,7 +1174,9 @@
       .explain-grid p,
       .lab-card p,
       .formula-card p,
-      .takeaway p {
+      .takeaway p,
+      .archive-card > p,
+      .page-sheet figcaption {
         min-width: 0;
         overflow-wrap: anywhere;
         word-break: break-all;
@@ -1116,7 +1197,9 @@
       .explain-grid,
       .canvas-panel,
       .pipeline,
-      .figure-grid {
+      .figure-grid,
+      .archive-stack,
+      .page-tape {
         grid-template-columns: 1fr;
       }
 
@@ -1130,6 +1213,10 @@
 
       .formula-chip {
         white-space: normal;
+      }
+
+      .archive-frame {
+        height: 780px;
       }
 
       .pipe-step:not(:last-child)::after {
@@ -1189,22 +1276,22 @@
 
       <nav class="toc" id="toc">
         <a href="#overview">学习路线</a>
-        <a href="#why">课本问题</a>
+        <a href="#why">问题背景</a>
         <a href="#partition">建模与分块</a>
         <a href="#gain">频率补偿与增益</a>
         <a href="#vertical-fft">竖块 FFT</a>
         <a href="#horizontal-capture">横块捕获</a>
         <a href="#cost">复杂度与总结</a>
         <a href="#iq">I/Q 前置理解</a>
-        <a href="#figures">教材图谱</a>
+        <a href="#figures">图谱索引</a>
       </nav>
 
       <div class="rail-card">
         <strong>本节抓手</strong>
-        <span>先按课本理解：为什么直接长时间累加会失败。</span>
-        <span>再看笔记补充：I/Q、相量、狄利克雷核分别在解释什么。</span>
-        <span>每个知识点后面接一个图或交互，不把笔记单独丢到附录。</span>
-        <span>最终输出仍是频率和码相位的二维搜索峰。</span>
+        <span>这一页本身就是完整讲义：章节内容与笔记理解已经直接整合到同一条叙述线上。</span>
+        <span>先理解相干累加为何失效，再理解补偿、竖块 FFT 和横块捕获如何接上。</span>
+        <span>每一节都按知识点展开，不再要求你回头翻原始资料找上下文。</span>
+        <span>最终结果仍然是频率与码相位的二维检测峰。</span>
       </div>
     </aside>
 
@@ -1212,20 +1299,20 @@
       <section class="hero" id="overview">
         <div class="hero-copy">
           <h1><span>4.1.6 基于</span><span>数据分块和</span><span>频率补偿的信号捕获</span></h1>
-          <p><span>这页按课本 4.1.6 的推导顺序重写：</span><span>先讲信号模型和数据分块，</span><span>再讲增益函数、频率补偿、</span><span>竖块 FFT 与横块捕获。</span><span>语雀笔记中的直觉解释会插入到对应知识点下面，</span><span>每讲完一个难点再配图或交互帮助理解。</span></p>
+          <p><span>这页把 4.1.6 节的核心内容重写成一份可直接学习的讲义：</span><span>先讲信号模型和数据分块，</span><span>再讲增益函数、频率补偿、竖块 FFT 与横块捕获，</span><span>把公式推导、图示和理解要点放到同一条叙述线上。</span><span>后续复习时只看这一页即可。</span></p>
 
           <div class="thesis" aria-label="核心结论">
             <article>
               <b>分块</b>
-              <span>对应课本图 4.17、4.20：把 $LN$ 点改看成 $L\times N$ 矩阵。</span>
+              <span>把 $LN$ 个采样点重排成 $L\times N$ 矩阵，把“同一码相位跨毫秒重复”这件事显式抽出来。</span>
             </article>
             <article>
               <b>补偿</b>
-              <span>对应式 (4.66)-(4.82)：用块间相位关系解释相干增益。</span>
+              <span>先用块间增益函数解释为什么直接累加会抵消，再用频率补偿和竖块 FFT 把相位重新对齐。</span>
             </article>
             <article>
               <b>捕获</b>
-              <span>对应图 4.22、式 (4.83)-(4.85)：二维峰给出频率与码相位。</span>
+              <span>竖块给出细频率，横块给出码相位，二维峰同时完成多普勒频率和伪码相位估计。</span>
             </article>
           </div>
         </div>
@@ -1275,14 +1362,14 @@
       <section class="section" id="why">
         <div class="section-header">
           <div>
-            <h2>课本起点：为什么要提出“分块 + 频率补偿”</h2>
+            <h2>问题背景：为什么要采用“分块 + 频率补偿”</h2>
             <p class="section-kicker">这一节不是凭空发明一种新 FFT 技巧，而是在回答一个很具体的问题：弱信号下想把相干时间拉长，为什么直接把 $L$ ms 数据做长时间处理不够稳、不够快？</p>
           </div>
           <div class="formula-chip">起点：$L$ ms，$N$ 点/ms</div>
         </div>
 
         <div class="lesson-body">
-          <p>课本在 4.1.6 前先提醒了一个限制：参与 FFT 处理的数据总长度不能超过数据比特不跳变所允许的最大长度。对 GPS C/A 来说通常可小于 20 ms；但对北斗某些信号，受 NH 码或数据结构影响，可直接相干处理的长度更短。这说明“单纯把数据越攒越长”并不是通用答案。</p>
+          <p>参与 FFT 处理的数据总长度不能超过数据比特不跳变所允许的最大长度，否则相关峰会出现抵消。对 GPS C/A 来说，数据比特长度是 20 ms，所以总长度一般控制在 20 ms 以内；对北斗某些信号，受 NH 码或数据结构影响，可直接相干处理的长度会更短。这说明“单纯把数据越攒越长”并不是通用答案。</p>
           <p>于是 4.1.6 转向一个更精细的思路：不把 $L$ ms 数据当作一个粗暴的长序列，而是利用伪码 1 ms 周期重复的结构，把时间维拆开处理。这样做的目标有两个：</p>
           <ul>
             <li>在灵敏度上，希望跨多个 1 ms 数据块做相干叠加，得到接近长时间积分的 SNR 收益。</li>
@@ -1299,11 +1386,11 @@
 
           <figure class="inline-figure">
             <img src="assets/figures/fig-4-17-data-blocks.png" alt="图 4.17 L 毫秒的采样数据被分块">
-            <figcaption>图 4.17 对应课本的第一个动作：先切块，不先 FFT。这样做是为了把“同一码相位在不同毫秒中的重复观测”提取出来。</figcaption>
+            <figcaption>图 4.17 的关键动作是先切块，不先 FFT。这样做是为了把“同一码相位在不同毫秒中的重复观测”提取出来。</figcaption>
           </figure>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：先建立“箭头”直觉</strong>
+            <strong>理解要点：先建立“箭头”直觉</strong>
             <p>接收到的 IQ 信号可以看成复平面上一根旋转箭头。相关累加希望这些箭头朝同一个方向叠加；如果残余频率存在，箭头每过 1 ms 都会转一个角度，直接相加就可能抵消。</p>
           </div>
 
@@ -1318,7 +1405,7 @@
         <div class="section-header">
           <div>
             <h2>第一步：信号模型与“同位置样点”重排</h2>
-            <p class="section-kicker">课本先从式 (4.65) 出发建立复信号模型，再观察这个模型里哪些量在跨块同一位置上保持不变，哪些量会变。这一步决定了后续为什么能沿“竖向”看相位。</p>
+            <p class="section-kicker">先从式 (4.65) 建立离散复信号模型，再观察跨块同一位置上哪些量保持不变、哪些量发生变化。这一步决定了后续为什么能沿“竖向”看相位。</p>
           </div>
           <div class="formula-chip">$T_b=NT_s=1\text{ ms}$</div>
         </div>
@@ -1333,7 +1420,7 @@
           </div>
           <div class="formula-stack">
             <div class="formula-card">
-              <h3>课本信号模型</h3>
+              <h3>离散信号模型</h3>
               <div class="equation">$$s_k(n)=D_k(nT_s)C_k(nT_s)e^{j2\pi f_k nT_s}+v_k(nT_s)$$</div>
               <p>这里的 $s_k(n)$ 是进入数字捕获算法前的离散中频/基带等效采样信号。$D_k$ 是导航数据位，$C_k$ 是伪随机码，$f_k$ 是受到多普勒影响后的载波频率，$v_k$ 是高斯白噪声。</p>
             </div>
@@ -1349,13 +1436,13 @@
           <h3>为什么同一列只有载波项在变</h3>
           <p>当 $L$ 小于数据位跳变周期时，可以把 $D_k$ 看作常数；又因为伪码周期是 1 ms，所以对于同一个列索引 $i$，有：</p>
           <div class="equation">$$C_k(iT_s)=C_k\bigl[(i+N)T_s\bigr]=\cdots=C_k\bigl[(i+(L-1)N)T_s\bigr]$$</div>
-          <p>因此跨块同一位置样点的区别主要只剩下载波项 $e^{j2\pi f_k nT_s}$。这正是课本敢把不同块中相同位置样点拿出来相加的基础。</p>
+          <p>因此跨块同一位置样点的区别主要只剩下载波项 $e^{j2\pi f_k nT_s}$。这正是不同块中相同位置样点可以被拿出来单独相加的基础。</p>
 
           <div class="derivation-grid">
             <div class="derivation-card">
               <h3>式 (4.66)：直接叠加的写法</h3>
               <div class="equation">$$\sum_{i=0}^{L-1}s_k(n+iN)=\{S_s^{(k)}(n)\}G(L,f_k)+\sum_{i=0}^{L-1}v_k(n+iN)$$</div>
-              <p>课本把信号项和噪声项分开看。信号项乘上块间增益函数 $G(L,f_k)$，噪声项只是各块噪声的求和。</p>
+              <p>这里把信号项和噪声项分开看：信号项乘上块间增益函数 $G(L,f_k)$，噪声项只是各块噪声的求和。</p>
             </div>
             <div class="derivation-card">
               <h3>式 (4.67)：块间增益函数</h3>
@@ -1370,7 +1457,7 @@
           </figure>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：为什么“相同位置”重要</strong>
+            <strong>理解要点：为什么“相同位置”重要</strong>
             <p>把 $L$ 个数据块的相同位置样点叠加，是因为每个数据块正好是 1 ms，而伪随机码周期也为 1 ms。这样同一列的数据位和伪码都可视为相同，才能把问题集中到载波相位补偿上。</p>
           </div>
         </div>
@@ -1380,7 +1467,7 @@
         <div class="section-header">
           <div>
             <h2>第二步：块间增益函数、相位补偿与搜索步进</h2>
-            <p class="section-kicker">课本先用 $G(L,f_k)$ 说明直接叠加为什么不可靠，再引入补偿信号 $p_k(n)$，把“对不齐的相位”转成“可控的相位”。这一节是 4.1.6 的数学核心。</p>
+            <p class="section-kicker">这一节先用 $G(L,f_k)$ 说明直接叠加为什么不可靠，再引入补偿信号 $p_k(n)$，把“对不齐的相位”转成“可控的相位”。这里是整节内容的数学核心。</p>
           </div>
           <div class="formula-chip">$G(L,f_k)$ 决定累加收益</div>
         </div>
@@ -1389,11 +1476,11 @@
           <h3>1. 先看直接相加为什么不稳</h3>
           <p>对同一列样点相加时，信号部分会被乘上一个块间增益函数：</p>
           <div class="equation">$$G(L,f_k)=\sum_{i=0}^{L-1}e^{j2\pi f_k iNT_s}$$</div>
-          <div class="equation-note">上式对应课本式 (4.67)，它把“块间相位是否能对齐”压缩成一个增益函数。</div>
+          <div class="equation-note">上式即式 (4.67)，它把“块间相位是否能对齐”压缩成一个增益函数。</div>
           <p>这是一个公比为 $q=e^{j2\pi f_kNT_s}$ 的等比级数。当 $q\neq 1$ 时，可直接用等比数列求和得到：</p>
           <div class="equation">$$G(L,f_k)=\frac{1-e^{j2\pi f_kLNT_s}}{1-e^{j2\pi f_kNT_s}}=e^{j\pi f_k(L-1)NT_s}\frac{\sin(\pi L f_kNT_s)}{\sin(\pi f_kNT_s)}$$</div>
           <div class="equation">$$|G(L,f_k)|=\left|\frac{\sin(\pi L f_kNT_s)}{\sin(\pi f_kNT_s)}\right|$$</div>
-          <div class="equation-note">这里对应课本式 (4.68)。第一项是相位因子，幅度真正由后面的正弦比值决定。</div>
+          <div class="equation-note">这里就是式 (4.68)。第一项是相位因子，幅度真正由后面的正弦比值决定。</div>
           <p>如果每相邻两个 1 ms 块之间的相位差是 $2\pi$ 的整数倍，那么所有项同相，$|G|$ 取得最大值 $L$。如果相位差不合适，复平面上的箭头会绕成一圈，累加后反而变小甚至接近 0。</p>
 
           <div class="derivation-grid">
@@ -1411,13 +1498,13 @@
 
           <figure class="inline-figure">
             <img src="assets/figures/fig-4-18-phase-adjust-accumulation.png" alt="图 4.18 通过载波相位调整后的数据块累加使信号强度提高">
-            <figcaption>图 4.18 对应课本的直观解释：不是“数据块本身不能加”，而是“不经相位调整的数据块不能直接加”。相位补偿的目的就是先把起始载波相位对齐。</figcaption>
+            <figcaption>图 4.18 给出直观解释：不是“数据块本身不能加”，而是“不经相位调整的数据块不能直接加”。相位补偿的目的就是先把起始载波相位对齐。</figcaption>
           </figure>
 
           <h3>2. 再看补偿信号如何把问题变成可控</h3>
           <div class="equation">$$p_k(n)=e^{j2\pi \Delta f_k nT_s},\qquad y_k(n)=s_k(n)p_k(n)$$</div>
-          <div class="equation-note">补偿信号 $p_k(n)$ 与补偿后信号 $y_k(n)$ 对应课本式 (4.69)。</div>
-          <p>补偿后载波频率变为 $f_k'=f_k+\Delta f_k$。课本式 (4.70)-(4.72) 的核心意思是：只要 $\Delta f_k$ 选得合适，让 $f'_k$ 在跨块观察时满足同相条件，就能把块间累加增益恢复到接近 $L$。</p>
+          <div class="equation-note">补偿信号 $p_k(n)$ 与补偿后信号 $y_k(n)$ 对应式 (4.69)。</div>
+          <p>补偿后载波频率变为 $f_k'=f_k+\Delta f_k$。式 (4.70)-(4.72) 的核心意思是：只要 $\Delta f_k$ 选得合适，让 $f'_k$ 在跨块观察时满足同相条件，就能把块间累加增益恢复到接近 $L$。</p>
           <div class="derivation-grid">
             <div class="derivation-card">
               <h3>式 (4.70)：补偿后的块累加</h3>
@@ -1428,18 +1515,36 @@
               <h3>式 (4.71)-(4.72)：何时得到满增益</h3>
               <div class="equation">$$e^{j2\pi f_k'NT_s}=1\Longleftrightarrow f_k'T_b=m,\quad T_b=NT_s,\ m\in\mathbb{Z}$$</div>
               <div class="equation">$$Y_k(n)=L\,S\{y_k(n)\}+\sum_{i=0}^{L-1}v'_k(n+iN)$$</div>
-              <p>只要相邻块之间的相位差恰好是整数圈，$L$ 个信号项就完全同相，而噪声只是随机叠加。这正是课本把补偿信号称为“载波相位调整序列”的原因。</p>
+              <p>只要相邻块之间的相位差恰好是整数圈，$L$ 个信号项就完全同相，而噪声只是随机叠加。这也是补偿信号可以被看作“载波相位调整序列”的原因。</p>
             </div>
           </div>
           <div class="equation">$$\operatorname{mod}(f_k',1\text{ kHz})=0$$</div>
-          <div class="equation-note">这就是课本式 (4.71)。满足该条件时，课本式 (4.72) 表明补偿后块累加的信号强度可增强到 $L$ 倍量级。</div>
+          <div class="equation-note">这就是式 (4.71)。满足该条件时，式 (4.72) 表明补偿后块累加的信号强度可增强到 $L$ 倍量级。</div>
           <p>把它改写成补偿量本身，可以直接得到优化补偿量的通式：</p>
           <div class="equation">$$\Delta f_k^{(\mathrm{opt})}=\frac{m}{T_b}-f_k,\qquad T_b=NT_s=1\text{ ms}$$</div>
-          <div class="equation-note">这个式子把课本“优化的 $\Delta f_k$”具体化了：它不是凭经验试出来的，而是由“跨块相位差必须是整数圈”直接推出的。</div>
+          <div class="equation-note">这个式子把“优化的 $\Delta f_k$”具体化了：它不是凭经验试出来的，而是由“跨块相位差必须是整数圈”直接推出的。</div>
           <p>这也是为什么优化解并不唯一：只要多补或少补一个整 1 kHz，在每隔 1 ms 的观测点上仍然等效同相。</p>
 
+          <div class="derivation-grid">
+            <div class="derivation-card">
+              <h3>这组优化量只对当前 PRN $k$ 有效</h3>
+              <div class="equation">$$\Delta f_k^{(\mathrm{opt})}=\frac{m}{T_b}-f_k$$</div>
+              <p>式中用到的是第 $k$ 颗卫星自己的残余载波频率 $f_k$。换一颗卫星，哪怕码长相同、分块方式相同，残余多普勒和数据状态也不同，因此最优补偿量并不会照搬过去。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>优化量按 $1/T_b$ 周期重复</h3>
+              <div class="equation">$$\Delta f_k^{(\mathrm{opt})}+\frac{q}{T_b},\qquad q\in\mathbb{Z}$$</div>
+              <p>跨块叠加只观察每隔 $T_b$ 的相位变化。若某个补偿量已经让相邻块之间多转整数圈，那么再额外加上 $q/T_b$ 也仍然只会多转整数圈，所以它们在块间观察上等效同相。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>相干增益对应 $10\lg L$ dB</h3>
+              <div class="equation">$$\mathrm{SNR}_{\text{out}}=\mathrm{SNR}_{\text{in}}\cdot L,\qquad G_{\mathrm{SNR}}=10\log_{10}L$$</div>
+              <p>完全同相时，信号幅度累加成 $L$ 倍，功率变成 $L^2$ 倍；噪声功率只线性增长为 $L$ 倍，因此输出信噪比提升 $L$ 倍，也就是 $10\lg L$ dB。</p>
+            </div>
+          </div>
+
           <div class="note-insert">
-            <strong>语雀笔记插入：为什么优化的 $\Delta f_k$ 会周期出现</strong>
+            <strong>理解要点：为什么优化的 $\Delta f_k$ 会周期出现</strong>
             <p>跨数据块叠加只关心每隔 $T_b=1$ ms 的相位变化。如果某个补偿量能让相邻块多转角度变成整数个 $2\pi$，那么 $\Delta f_k^{(\mathrm{opt})}+q/T_b$ 也同样最优；在本节里 $1/T_b=1$ kHz，因此优化补偿量会按 1 kHz 周期重复出现。</p>
           </div>
 
@@ -1452,16 +1557,16 @@
             <div class="derivation-card">
               <h3>噪声为什么只涨到 $L$ 倍</h3>
               <div class="equation">$$v'_k(n+iN)\sim\mathcal{N}(0,\sigma^2)\Longrightarrow \sum_{i=0}^{L-1}v'_k(n+iN)\sim\mathcal{N}(0,L\sigma^2)$$</div>
-              <p>噪声方差线性增长，所以最终相干累加信噪比提高 $L$ 倍，也就是 $10\log_{10}L$ dB。这正对应语雀笔记里“信号幅度线性增、噪声功率线性增”的解释。</p>
+              <p>噪声方差线性增长，所以最终相干累加信噪比提高 $L$ 倍，也就是 $10\log_{10}L$ dB。直观地看，就是“信号幅度线性增、噪声功率线性增”，因此净收益会留在信噪比上。</p>
             </div>
           </div>
 
           <h3>3. 搜索范围和搜索步进从哪里来</h3>
-          <p>课本给出的结论是：优化 $\Delta f_k$ 的搜索范围可以缩小到 $[0,1\text{ kHz}]$。因为更宽的搜索范围只是这个区间按 1 kHz 周期平移后的重复。</p>
+          <p>由上面的相位周期性可以直接得到：优化 $\Delta f_k$ 的搜索范围可以缩小到 $[0,1\text{ kHz}]$。因为更宽的搜索范围只是这个区间按 1 kHz 周期平移后的重复。</p>
           <p>搜索步进由 $G(L,\Delta f_k)$ 的主瓣宽度决定。由于主瓣第一个过零点大约在 $\pm 1/(LT_b)$，所以步进尺度可以直接写成：</p>
           <div class="equation">$$\Delta f_{\text{step}}\approx \frac{1}{LT_b}=\frac{1\text{ kHz}}{L}$$</div>
-          <div class="equation-note">它对应 $G(L,\Delta f_k)$ 的主瓣第一个过零点尺度，因此也是课本从图 4.19 读出 200 Hz、100 Hz 这些示例的依据。</div>
-          <p>经验上取这个尺度附近作为步进，既不至于漏掉峰值，又能把频点数控制住。课本给出示例：$L=5$ 可用 200 Hz，$L=10$ 可用 100 Hz，对应最大灵敏度损失约 2 dB。</p>
+          <div class="equation-note">它对应 $G(L,\Delta f_k)$ 的主瓣第一个过零点尺度，也是从图 4.19 读出 200 Hz、100 Hz 这些示例的依据。</div>
+          <p>经验上取这个尺度附近作为步进，既不至于漏掉峰值，又能把频点数控制住。典型例子是：$L=5$ 可用 200 Hz，$L=10$ 可用 100 Hz，对应最大灵敏度损失约 2 dB。</p>
 
           <figure class="inline-figure">
             <img src="assets/figures/fig-4-19-gain-function.png" alt="图 4.19 不同 L 值下的归一化增益函数">
@@ -1470,7 +1575,7 @@
 
           <div class="beginner-box">
             <strong>平方检测为什么不是最终答案</strong>
-            <p>课本在式 (4.73)-(4.77) 讨论了对补偿后数据块先平方再看频谱的想法，并指出它更适合强信号。弱信号下平方操作会把有用频谱压得更差，因此后续才继续寻找一种能并行搜索 $\Delta f_k$、又适合弱信号的方法：竖块 FFT。</p>
+            <p>如果对补偿后数据块先平方再看频谱，这种方法更适合强信号；弱信号下平方操作会把有用频谱压得更差，因此后续需要继续寻找一种能并行搜索 $\Delta f_k$、又适合弱信号的方法：竖块 FFT。</p>
           </div>
         </div>
 
@@ -1490,16 +1595,22 @@
         <div class="section-header">
           <div>
             <h2>第三步：放弃串行搜 $\Delta f_k$，改用竖块 FFT</h2>
-            <p class="section-kicker">课本在否定了“串行试遍 $\Delta f_k$”和“平方后看频谱”两个思路之后，才真正进入这一方法的关键：把同一码相位的慢时间序列直接送进 FFT。</p>
+            <p class="section-kicker">在否定了“串行试遍 $\Delta f_k$”和“平方后看频谱”两个思路之后，真正关键的一步就出现了：把同一码相位的慢时间序列直接送进 FFT。</p>
           </div>
           <div class="formula-chip">竖向采样率：1 kHz</div>
         </div>
 
         <div class="lesson-body">
-          <h3>1. 课本为什么要放弃“先平方再 FFT”</h3>
-          <p>对补偿后块累加结果 $Y_{k,l}(n)$ 先平方，确实能把信号分量变成连续波，再尝试用频谱峰判断最优 $\Delta f_k$。但课本并没有停在这个直觉上，而是继续把噪声项也写出来，得到式 (4.73)-(4.77)：</p>
+          <h3>1. 步进确定后，候选补偿量如何组织</h3>
+          <p>上一节已经得到搜索步进大约应取 $\Delta f_{\text{step}}\approx 1/(LT_b)=1\text{ kHz}/L$。这意味着在每个 1 kHz 粗频率区间内，可以自然构造出一组候选补偿量：</p>
+          <div class="equation">$$\Delta f_k(m)=m\cdot \frac{1\text{ kHz}}{L},\qquad m=0,1,\dots,L-1$$</div>
+          <p>最直接的实现方式有两种。第一种是对每个候选补偿量做相位补偿后进行平方检测，再看频谱峰；第二种是对每个候选补偿量都完整做一次捕获，然后逐个比较相关输出。前者只在强信号下可靠，后者则会把计算量重新拉回“串行试遍所有 $\Delta f_k$”的状态。</p>
+          <p>因此更自然的做法是把这组候选频偏假设隐含进一次 $L$ 点竖块 FFT 里，让 FFT 同时完成“反向旋转 + 相干累加 + 候选量比较”。这样一来，不需要显式为每个 $\Delta f_k$ 单独构造一条补偿支路。</p>
+
+          <h3>2. 为什么要放弃“先平方再 FFT”</h3>
+          <p>对补偿后块累加结果 $Y_{k,l}(n)$ 先平方，确实能把信号分量变成连续波，再尝试用频谱峰判断最优 $\Delta f_k$。但这里不能停在这个直觉上，还要把噪声项也写出来，得到式 (4.73)-(4.77)：</p>
           <div class="equation">$$Y_{k,l}^2(n)=D_k^2(n)C_k^2(n)e^{j2\pi 2(f_k+\Delta f_k)nT_s}L^2+V^2(n)+2LV(n)D_k(n)C_k(n)e^{j2\pi(f_k+\Delta f_k)nT_s}$$</div>
-          <div class="equation-note">这就是课本式 (4.73)。平方以后，理想信号项变成连续波，但同时也引入了噪声平方项和信号-噪声交叉项。</div>
+          <div class="equation-note">这就是式 (4.73)。平方以后，理想信号项变成连续波，但同时也引入了噪声平方项和信号-噪声交叉项。</div>
           <div class="equation">$$\eta_n(L)=V^2(n)+2LV(n)D_k(n)C_k(n)e^{j2\pi(f_k+\Delta f_k)nT_s}$$</div>
           <div class="equation">$$E[\eta_n(L)]=L\sigma^2,\qquad \operatorname{var}[\eta_n(L)]=2L^2\sigma^4+4L^3\sigma^2$$</div>
           <div class="equation">$$\mathrm{SN}_{\text{平方}}=\frac{L^4}{2L^2\sigma^4+4L^3\sigma^2}$$</div>
@@ -1515,17 +1626,17 @@
               <p>弱信号下有用谱峰会被噪声平方项和交叉项淹没，因此平方检测不适合作为 4.1.6 的主算法。</p>
             </div>
           </div>
-          <p>这一步对初学者很关键：课本不是简单说“平方不好用”，而是明确算出它只在强信号时有效。弱信号又不能无限增大 $L$ 来补救，因为 $L$ 还受导航比特或 NH 码跳变边界约束。</p>
+          <p>这一步对初学者很关键：这里不是简单说“平方不好用”，而是明确算出它只在强信号时有效。弱信号又不能无限增大 $L$ 来补救，因为 $L$ 还受导航比特或 NH 码跳变边界约束。</p>
 
-          <h3>2. 竖块中到底是什么数据</h3>
+          <h3>3. 竖块中到底是什么数据</h3>
           <p>图 4.20 把原始一维流重排成二维矩阵后，固定列索引 $i$，第 $i$ 个竖块是：</p>
           <div class="equation">$$[s(i),\ s(N+i),\ \dots,\ s((L-1)N+i)]$$</div>
-          <p>课本式 (4.78) 说明，这串数据都可以写成第一个样点乘上一个按块序号增长的复指数。由于 $NT_s=1$ ms，可把频率拆成整数 kHz 部分和 1 kHz 内的余数部分：</p>
+          <p>式 (4.78) 说明，这串数据都可以写成第一个样点乘上一个按块序号增长的复指数。由于 $NT_s=1$ ms，可把频率拆成整数 kHz 部分和 1 kHz 内的余数部分：</p>
           <div class="equation">$$s(i)=C_kD_ke^{j2\pi f_kiT_s+\phi_0},\quad s(N+i)=s(i)e^{j2\pi f_kNT_s},\quad \dots,\quad s((L-1)N+i)=s(i)e^{j2\pi f_k(L-1)NT_s}$$</div>
-          <div class="equation-note">这就是课本式 (4.78)：同一竖块里的所有点都等于第一个点乘上一个“按块序号线性增长的相位因子”。</div>
+          <div class="equation-note">这就是式 (4.78)：同一竖块里的所有点都等于第一个点乘上一个“按块序号线性增长的相位因子”。</div>
           <div class="equation">$$f_k=F\cdot 1\text{ kHz}+\Delta f_k,\qquad 0\le \Delta f_k<1\text{ kHz}$$</div>
           <div class="equation">$$e^{j2\pi f_k qNT_s}=e^{j2\pi(F\cdot 1\text{ kHz}+\Delta f_k)q\cdot 1\text{ ms}}=e^{j2\pi Fq}e^{j2\pi \Delta f_k qNT_s}=e^{j2\pi \Delta f_k qNT_s}$$</div>
-          <div class="equation-note">这一步把课本式 (4.79) 解释清楚了：整数 kHz 部分在竖向采样点上只会多转整圈，因此真正留下来的只有余频 $\Delta f_k$。</div>
+          <div class="equation-note">这一步把式 (4.79) 解释清楚了：整数 kHz 部分在竖向采样点上只会多转整圈，因此真正留下来的只有余频 $\Delta f_k$。</div>
 
           <figure class="inline-figure">
             <img src="assets/figures/fig-4-20-horizontal-vertical-blocks.png" alt="图 4.20 将采样数据按横块和竖块重新排列">
@@ -1533,21 +1644,21 @@
           </figure>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：为什么要把 $f_k$ 分成整数 kHz 和余频</strong>
+            <strong>理解要点：为什么要把 $f_k$ 分成整数 kHz 和余频</strong>
             <p>竖向相当于每 1 ms 采样一次，即竖向采样率是 1 kHz。若某个频率恰好是 1 kHz 的整数倍，那么每隔 1 ms 观察一次时相位只会多转整圈，所以在竖向上“看不出来”，真正要分辨的是余下的 $\Delta f_k$。</p>
           </div>
 
-          <h3>3. 对竖块做 FFT 后，为什么它等价于并行搜索余频</h3>
+          <h3>4. 对竖块做 FFT 后，为什么它等价于并行搜索余频</h3>
           <p>由于竖块中相邻样点时间间隔是 1 ms，所以竖向慢时间采样率就是 1 kHz。对每个竖块做 $L$ 点 FFT，得到：</p>
           <div class="equation">$$Y(i,m)=\sum_{n=0}^{L-1}s(i)e^{j\Delta\omega nNT_s}e^{-j\omega_m nNT_s},\qquad \omega_m=\frac{2\pi f_p}{L}m,\ f_p=1\text{ kHz}$$</div>
-          <p>这就是课本式 (4.80)。它的含义不是“做一个黑盒 FFT”，而是：同时用 $L$ 个候选角频率 $\omega_m$ 去反向旋转这 $L$ 个样点，然后分别看看谁最能把它们对齐。</p>
+          <p>这就是式 (4.80)。它的含义不是“做一个黑盒 FFT”，而是：同时用 $L$ 个候选角频率 $\omega_m$ 去反向旋转这 $L$ 个样点，然后分别看看谁最能把它们对齐。</p>
           <div class="equation">$$Y(i,m)=s(i)\frac{1-e^{j(\Delta\omega-\omega_m)LNT_s}}{1-e^{j(\Delta\omega-\omega_m)NT_s}}=s(i)A(m)$$</div>
-          <p>这就是课本式 (4.81)。当 $\omega_m=\Delta\omega$ 时，反向旋转刚好抵消真实旋转，$L$ 个箭头方向完全一致，于是这一谱线输出最大。</p>
+          <p>这就是式 (4.81)。当 $\omega_m=\Delta\omega$ 时，反向旋转刚好抵消真实旋转，$L$ 个箭头方向完全一致，于是这一谱线输出最大。</p>
           <div class="equation">$$|A(m)|=\left|\frac{\sin\left[(\Delta\omega-\omega_m)LNT_s/2\right]}{\sin\left[(\Delta\omega-\omega_m)NT_s/2\right]}\right|$$</div>
-          <div class="equation-note">这就是课本式 (4.82)。它和前面的 $G(L,f)$ 是同一类狄利克雷核：只要第 $m$ 根谱线的反向旋转最接近真实余频，这个模值就会冲到接近 $L$。</div>
+          <div class="equation-note">这就是式 (4.82)。它和前面的 $G(L,f)$ 是同一类狄利克雷核：只要第 $m$ 根谱线的反向旋转最接近真实余频，这个模值就会冲到接近 $L$。</div>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：把竖块 FFT 看成“一次并行试遍 $L$ 个余频”</strong>
+            <strong>理解要点：把竖块 FFT 看成“一次并行试遍 $L$ 个余频”</strong>
             <p>若 $L=10$，竖向采样率是 1 kHz，那么第 $m$ 根谱线对应的候选余频就是 $0,100,200,\dots,900$ Hz。也就是说，竖块 FFT 不是额外做一个频谱图，而是一次性并行测试这 10 个 $\Delta f_k$ 假设。</p>
           </div>
 
@@ -1597,15 +1708,23 @@
         <div class="after-demo lesson-body">
           <h3>1. 为什么 FFT 后还要“重新排列”</h3>
           <p>对每个竖块做 FFT 后，我们得到的是“同一码相位下，多个候选频率的输出”。但码相位捕获要求输入的是“同一频率假设下，一个完整 1 ms 序列”。因此必须交换观察角度：从“按列看频率输出”切换成“按行看同频率假设”。</p>
+          <div class="equation">$$\mathbf{Y}=
+\begin{bmatrix}
+Y(0,0) & Y(1,0) & \cdots & Y(N-1,0)\\
+Y(0,1) & Y(1,1) & \cdots & Y(N-1,1)\\
+\vdots & \vdots & \ddots & \vdots\\
+Y(0,L-1) & Y(1,L-1) & \cdots & Y(N-1,L-1)
+\end{bmatrix}_{L\times N}$$</div>
+          <p>这个 $L\times N$ 矩阵的列索引 $i$ 仍表示 1 ms 内的采样位置，而行索引已经从“第几个时间块”变成了“第几个余频假设 $m$”。也就是说，竖块 FFT 完成后，矩阵的物理含义已经从“时间块 × 采样点”变成“频率假设 × 采样点”。</p>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：为什么 FFT 后要重新排列</strong>
+            <strong>理解要点：为什么 FFT 后要重新排列</strong>
             <p>竖向 FFT 把原来的 $L$ 个 1 ms 时间块变成 $L$ 个频率假设块。做码相位搜索时必须保持频率索引一致，所以要把同一个 $m$ 下的 $Y(0,m),Y(1,m),\dots,Y(N-1,m)$ 收集成一个新的等效 1 ms 序列。</p>
           </div>
 
           <p>固定 $m$ 后，这个横块可以写成：</p>
           <div class="equation">$$s(0)A(m),\ s(1)A(m),\ \dots,\ s(N-1)A(m)$$</div>
-          <p>因为 $A(m)$ 对所有横向样点相同，所以横向采样间隔仍是 $T_s$，伪码结构仍是完整的 1 ms 周期。于是这一行可以直接送入 4.1.4 节已有的 FFT 快速捕获框架。</p>
+          <p>换句话说，第 $m$ 行本身就是“在第 $m$ 个余频假设下得到的等效 1 ms 数据块”。因为 $A(m)$ 对所有横向样点相同，所以横向采样间隔仍是 $T_s$，伪码结构仍是完整的 1 ms 周期。于是这一行可以直接送入 4.1.4 节已有的 FFT 快速捕获框架。</p>
           <div class="derivation-grid">
             <div class="derivation-card">
               <h3>公共因子为什么不改码结构</h3>
@@ -1625,12 +1744,12 @@
           </figure>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：为什么粗频率不能省掉</strong>
+            <strong>理解要点：为什么粗频率不能省掉</strong>
             <p>竖块 FFT 只能看见 1 kHz 内的余频；而横向相邻采样点间隔是 $T_s$，所以整数 kHz 频差在横向并不会自动消失。若外层粗频率 $f_i$ 设错了，横向相关时仍会保留线性相位斜率，相关峰会被压低甚至接近 0。</p>
           </div>
 
           <h3>2. 最终频率估计怎么组成</h3>
-          <p>竖块 FFT 只给出 1 kHz 区间内的细频率索引；横块捕获外层枚举的本地载波频率给出粗频率区间。课本式 (4.83) 把两者拼起来：</p>
+          <p>竖块 FFT 只给出 1 kHz 区间内的细频率索引；横块捕获外层枚举的本地载波频率给出粗频率区间。式 (4.83) 把两者拼起来：</p>
           <div class="equation">$$f(m)=f_i+m\cdot\frac{1\text{ kHz}}{L},\qquad m=0,1,\dots,L-1$$</div>
           <p>因此最终搜索面有两个坐标轴：一个是频率，一个是码相位。二维峰的位置同时给出多普勒频率和伪码相位估计。</p>
         </div>
@@ -1640,7 +1759,7 @@
         <div class="section-header">
           <div>
             <h2>第五步：运算量推导、粗细频率分工与方法总结</h2>
-            <p class="section-kicker">课本 4.1.6 最后不是只说“它更快”，而是明确按 FFT 点数把分块方法和常规长 FFT 方法逐项算出来。这里也顺手回答语雀笔记里关于“为什么粗搜索间隔自然是 1 kHz”的疑问。</p>
+            <p class="section-kicker">这一节最后不是只说“它更快”，而是明确按 FFT 点数把分块方法和常规长 FFT 方法逐项算出来。这里也顺手回答“为什么粗搜索间隔自然是 1 kHz”的疑问。</p>
           </div>
           <div class="formula-chip">默认 $N=1024$</div>
         </div>
@@ -1676,7 +1795,17 @@
         </div>
 
         <div class="lesson-body after-demo">
-          <h3>1. 课本如何逐项算出分块法的运算量</h3>
+          <h3>1. 工程上常见的 $L$ 取值意味着什么</h3>
+          <p>若粗搜索范围按 $\pm 5$ kHz 取 10 个 1 kHz 档位，那么每个档位内部由竖块 FFT 再分成 $L$ 个细频率索引。常见的几组取值可以直接对应到频率分辨率：</p>
+          <ul>
+            <li>$L=2$：细频率分辨率 $500$ Hz，总频率假设数是 $10\times 2=20$。</li>
+            <li>$L=4$：细频率分辨率 $250$ Hz，总频率假设数是 $10\times 4=40$。</li>
+            <li>$L=8$：细频率分辨率 $125$ Hz，总频率假设数是 $10\times 8=80$。</li>
+            <li>$L=16$：细频率分辨率 $62.5$ Hz，总频率假设数是 $10\times 16=160$。</li>
+          </ul>
+          <p>$L$ 增大时，细频率分辨率会变好，相干增益也会提高；但同时主瓣更窄、对频率误差更敏感，且可用积分时长还必须受导航比特或 NH 码跳变边界约束。因此工程上通常在 $L=2,4,8,16$ 这一类 2 的幂附近折中选择。</p>
+
+          <h3>2. 分块法的运算量如何逐项展开</h3>
           <p>若把一个 $n$ 点 FFT 的运算量近似记为 $n\operatorname{lb}(n)$，则分块法包含两部分：</p>
           <ul>
             <li>竖块 FFT：共有 $N$ 个竖块，每个做一次 $L$ 点 FFT，故运算量是 $NL\operatorname{lb}(L)$。</li>
@@ -1685,7 +1814,7 @@
           <div class="equation">$$C_{\text{Block}}=20LN\operatorname{lb}(N)+NL\operatorname{lb}(L)$$</div>
           <div class="equation-note">把式 (4.84) 因式分解后就是 $NL[20\operatorname{lb}(N)+\operatorname{lb}(L)]$。这一步很重要，因为它直接揭示了分块法随积分长度增长时主要是线性放大，而不是平方放大。</div>
 
-          <h3>2. 常规长 FFT 为什么会多出一个 $L$</h3>
+          <h3>3. 常规长 FFT 为什么会多出一个 $L$</h3>
           <p>若直接把整段数据当成长为 $LN$ 的单个序列处理，为了达到同样的细频率分辨率 $\Delta f=1\text{ kHz}/L$，搜索频点数必须从 10 个粗频率点扩展到 $10L$ 个细频率点。每个频点又需要一次 $LN$ 点 FFT 和一次 $LN$ 点 IFFT：</p>
           <div class="equation">$$C_{\text{Normal}}=20L\cdot LN\operatorname{lb}(LN)=20L^2N\operatorname{lb}(N)+20L^2N\operatorname{lb}(L)$$</div>
           <div class="equation-note">这里多出来的一个 $L$ 同时出现在“频点数”与“单次 FFT 长度”里，所以最终形成了 $L^2$ 级别的复杂度，这正是式 (4.85) 比式 (4.84) 大得多的根源。</div>
@@ -1709,25 +1838,25 @@
           </div>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：复杂度差异的直觉</strong>
+            <strong>理解要点：复杂度差异的直觉</strong>
             <p>分块方案是 $N$ 个 $L$ 点 FFT 加 $20L$ 个 $N$ 点 FFT；常规方案是 $20L$ 个 $LN$ 点 FFT。常规方案主项带 $L^2$，分块方案主要随 $L$ 线性增长，所以 $L$ 越大差距越明显。</p>
           </div>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：为什么粗搜索自然取 1 kHz，而不是 2 kHz 或 500 Hz</strong>
+            <strong>理解要点：为什么粗搜索自然取 1 kHz，而不是 2 kHz 或 500 Hz</strong>
             <p>竖块 FFT 的无模糊范围正好是 1 kHz。若粗间隔取 2 kHz，会漏掉一半 1 kHz 区间；若取 500 Hz，各粗档与竖块 FFT 的 1 kHz 余频范围会互相重叠，形成重复搜索。所以 1 kHz 不是拍脑袋，而是和竖向 1 ms 采样严格配套的。</p>
           </div>
 
           <figure class="inline-figure">
             <img src="assets/figures/fig-4-23-computation-comparison.png" alt="图 4.23 分块处理和常规 FFT 的运算量比较">
-            <figcaption>图 4.23 是课本对式 (4.84) 和式 (4.85) 的可视化结论：随着 $L$ 增大，常规长 FFT 的增长速度明显更快。</figcaption>
+            <figcaption>图 4.23 对式 (4.84) 和式 (4.85) 作了可视化比较：随着 $L$ 增大，常规长 FFT 的增长速度明显更快。</figcaption>
           </figure>
         </div>
 
         <div class="lab-grid">
           <div class="lab-card">
             <h3>复杂度曲线</h3>
-            <p>曲线使用课本式 (4.84) 与 (4.85) 的量级表达。拖动首屏 $L$ 可以看到当前点在曲线上的位置。</p>
+            <p>曲线使用式 (4.84) 与式 (4.85) 的量级表达。拖动首屏 $L$ 可以看到当前点在曲线上的位置。</p>
             <div class="canvas-card" style="margin-top:18px">
               <canvas id="costCanvas" width="900" height="430"></canvas>
             </div>
@@ -1748,8 +1877,8 @@
       <section class="section" id="iq">
         <div class="section-header">
           <div>
-            <h2>I/Q 前置理解：为什么课本可以用复信号写捕获模型</h2>
-            <p class="section-kicker">这一段不是 4.1.6 主算法的一步，但它解释了语雀笔记中反复提到的“旋转箭头”“复指数补偿”和“正负频率区分”。</p>
+            <h2>I/Q 前置理解：为什么可以用复信号写捕获模型</h2>
+            <p class="section-kicker">这一段不是 4.1.6 主算法的一步，但它解释了前文反复使用的“旋转箭头”“复指数补偿”和“正负频率区分”这些直觉。</p>
           </div>
           <div class="formula-chip">$s[n]=I[n]+jQ[n]$</div>
         </div>
@@ -1781,17 +1910,17 @@
               <div class="equation">$$I_k[n]=D_k[n]C_k[n]\cos(2\pi f_knT_s)+v_I[n]$$</div>
               <div class="equation">$$Q_k[n]=D_k[n]C_k[n]\sin(2\pi f_knT_s)+v_Q[n]$$</div>
               <div class="equation">$$s_k[n]=I_k[n]+jQ_k[n]$$</div>
-              <p>这正是课本在 4.1.6 使用复指数建模的硬件背景。</p>
+              <p>这正是本节使用复指数建模的硬件背景。</p>
             </div>
           </div>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：实信号频谱冗余性</strong>
+            <strong>理解要点：实信号频谱冗余性</strong>
             <p>实信号的 DFT 满足 $X[(-k)\bmod N]=X^*[k]$，负频率点等于正频率点的共轭，所以单路实信号频谱存在共轭对称冗余。I/Q 复采样打破了这种只看投影的限制，更适合做载波相位与频率补偿。</p>
           </div>
 
           <div class="note-insert">
-            <strong>语雀笔记插入：硬件里“乘复指数”到底怎么算</strong>
+            <strong>理解要点：硬件里“乘复指数”到底怎么算</strong>
             <p>载波补偿 $(I+jQ)e^{-j\theta}$ 在硬件里不是直接算虚数乘法，而是展开为 $I'=I\cos\theta+Q\sin\theta$、$Q'=Q\cos\theta-I\sin\theta$。因此“复数旋转”本质上仍然是实数乘加电路。</p>
           </div>
         </div>
@@ -1800,8 +1929,8 @@
       <section class="section" id="figures">
         <div class="section-header">
           <div>
-            <h2>教材原图索引：本页中已经用到的图 4.17 至图 4.23</h2>
-            <p class="section-kicker">这些原图已经穿插在前面的讲义流程里。这里保留一个集中索引，方便对照课本版式查看。</p>
+            <h2>图示汇总：本页中已经用到的图 4.17 至图 4.23</h2>
+            <p class="section-kicker">这些图已经穿插在前面的讲义流程里。这里保留一个集中索引，方便按图回顾每一步在整体算法中的位置。</p>
           </div>
           <div class="formula-chip">图 4.17 至图 4.23</div>
         </div>
@@ -1838,7 +1967,7 @@
         </div>
       </section>
 
-      <p class="footer">本页面为本地笔记整理文件：正文以课本 4.1.6 为主线，语雀笔记内容已按知识点插入讲解位置，并配套可视化和交互演示。</p>
+      <p class="footer">本页面为本地讲义文件：4.1.6 的知识链路、公式推导、图示与交互演示已经整理到同一页中，可直接用于学习和复习。</p>
     </main>
   </div>
 
