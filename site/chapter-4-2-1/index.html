@@ -879,31 +879,52 @@
           </div>
 
           <div class="pll-diagram" aria-label="基本锁相环功能框图">
-            <svg viewBox="0 0 980 260" role="img">
+            <svg viewBox="0 0 980 404" role="img">
               <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#315f9d"></path>
+                <marker id="pllArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#111"></path>
                 </marker>
               </defs>
-              <rect x="1" y="1" width="978" height="258" fill="#fffdf8" stroke="rgba(16,32,45,.14)"></rect>
-              <text x="66" y="83" fill="#394c5b" font-size="21" font-family="sans-serif">输入相位 θi(s)</text>
-              <line x1="190" y1="78" x2="260" y2="78" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></line>
-              <circle cx="292" cy="78" r="30" fill="#eef7f5" stroke="#168f92" stroke-width="2"></circle>
-              <text x="282" y="86" fill="#168f92" font-size="24" font-family="sans-serif">Σ</text>
-              <text x="281" y="54" fill="#394c5b" font-size="18" font-family="sans-serif">+</text>
-              <text x="285" y="119" fill="#394c5b" font-size="18" font-family="sans-serif">-</text>
-              <line x1="322" y1="78" x2="402" y2="78" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></line>
-              <text x="344" y="58" fill="#394c5b" font-size="19" font-family="sans-serif">θ^(s)</text>
-              <rect x="404" y="38" width="150" height="80" rx="8" fill="#fff" stroke="#168f92" stroke-width="2"></rect>
-              <text x="445" y="86" fill="#10202d" font-size="22" font-family="sans-serif">F(s)</text>
-              <line x1="554" y1="78" x2="636" y2="78" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></line>
-              <text x="572" y="58" fill="#394c5b" font-size="18" font-family="sans-serif">vo(s)</text>
-              <rect x="638" y="38" width="150" height="80" rx="8" fill="#fff" stroke="#c68421" stroke-width="2"></rect>
-              <text x="672" y="86" fill="#10202d" font-size="22" font-family="sans-serif">k / s</text>
-              <line x1="788" y1="78" x2="902" y2="78" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></line>
-              <text x="815" y="58" fill="#394c5b" font-size="18" font-family="sans-serif">θl(s)</text>
-              <path d="M 850 78 C 850 188 292 188 292 108" fill="none" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></path>
-              <text x="514" y="202" fill="#394c5b" font-size="18" font-family="sans-serif">反馈本地相位 θl(s)</text>
+              <rect x="1" y="1" width="978" height="402" fill="#fff" stroke="#cfcfcf"></rect>
+              <line x1="1" y1="186" x2="979" y2="186" stroke="#d8d8d8" stroke-width="1.2"></line>
+
+              <text x="325" y="34" fill="#111" font-size="24" font-family="serif">鉴相器</text>
+              <text x="520" y="34" fill="#111" font-size="24" font-family="serif">环路滤波器</text>
+              <text x="256" y="358" fill="#111" font-size="24" font-family="serif">压控振荡器</text>
+
+              <text x="28" y="94" fill="#111" font-size="22" font-family="serif">v<tspan baseline-shift="sub" font-size="16">i</tspan>(t)</text>
+              <line x1="28" y1="82" x2="264" y2="82" stroke="#111" stroke-width="2.2" marker-end="url(#pllArrow)"></line>
+              <text x="176" y="68" fill="#111" font-size="20" font-family="serif">θ<tspan baseline-shift="sub" font-size="14">i</tspan></text>
+
+              <circle cx="288" cy="82" r="24" fill="#fff" stroke="#111" stroke-width="2"></circle>
+              <line x1="276" y1="82" x2="300" y2="82" stroke="#111" stroke-width="1.8"></line>
+              <line x1="288" y1="70" x2="288" y2="94" stroke="#111" stroke-width="1.8"></line>
+              <text x="234" y="62" fill="#111" font-size="20" font-family="serif">+</text>
+              <text x="236" y="126" fill="#111" font-size="20" font-family="serif">−</text>
+
+              <line x1="312" y1="82" x2="492" y2="82" stroke="#111" stroke-width="2.2" marker-end="url(#pllArrow)"></line>
+              <text x="370" y="68" fill="#111" font-size="22" font-family="serif">θ̂</text>
+
+              <rect x="492" y="42" width="170" height="80" fill="#fff" stroke="#111" stroke-width="1.8"></rect>
+              <text x="563" y="92" fill="#111" font-size="34" text-anchor="middle" font-family="serif" font-style="italic">F(s)</text>
+
+              <line x1="662" y1="82" x2="842" y2="82" stroke="#111" stroke-width="2.2"></line>
+              <circle cx="842" cy="82" r="4.5" fill="#111"></circle>
+              <line x1="842" y1="82" x2="938" y2="82" stroke="#111" stroke-width="2.2" marker-end="url(#pllArrow)"></line>
+              <text x="870" y="68" fill="#111" font-size="22" font-family="serif">v<tspan baseline-shift="sub" font-size="16">o</tspan>(t)</text>
+
+              <line x1="842" y1="82" x2="842" y2="270" stroke="#111" stroke-width="2.1"></line>
+              <line x1="842" y1="270" x2="416" y2="270" stroke="#111" stroke-width="2.1" marker-end="url(#pllArrow)"></line>
+
+              <rect x="212" y="244" width="204" height="92" fill="#fff" stroke="#111" stroke-width="1.8"></rect>
+              <text x="314" y="297" fill="#111" font-size="34" text-anchor="middle" font-family="serif" font-style="italic">K</text>
+              <line x1="286" y1="304" x2="342" y2="304" stroke="#111" stroke-width="1.6"></line>
+              <text x="314" y="327" fill="#111" font-size="34" text-anchor="middle" font-family="serif" font-style="italic">s</text>
+
+              <line x1="314" y1="244" x2="314" y2="106" stroke="#111" stroke-width="2.1" marker-end="url(#pllArrow)"></line>
+              <text x="331" y="136" fill="#111" font-size="22" font-family="serif">θ<tspan baseline-shift="sub" font-size="16">l</tspan></text>
+
+              <text x="490" y="392" fill="#111" font-size="22" text-anchor="middle" font-family="serif">图 4.28　基本的锁相环功能框图</text>
             </svg>
           </div>
 
