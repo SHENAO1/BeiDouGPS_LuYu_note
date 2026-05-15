@@ -1,0 +1,2011 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4.2.1 基本的锁相环 HTML 笔记</title>
+  <meta name="description" content="北斗/GPS 双模软件接收机 4.2.1 基本的锁相环：公式推导、环路带宽、动态应力与一二三阶 PLL 交互演示。">
+  <style>
+    :root {
+      --ink: #10202d;
+      --ink-soft: #394c5b;
+      --muted: #6a7883;
+      --paper: #f7f4ec;
+      --surface: #fffdf8;
+      --surface-2: #eef7f5;
+      --line: rgba(16, 32, 45, .14);
+      --line-strong: rgba(16, 32, 45, .24);
+      --night: #0b1924;
+      --night-2: #102b37;
+      --teal: #168f92;
+      --teal-2: #22b8b4;
+      --blue: #315f9d;
+      --amber: #c68421;
+      --red: #b84a42;
+      --green: #527d36;
+      --shadow: 0 18px 50px rgba(16, 32, 45, .12);
+      --radius: 8px;
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(16, 32, 45, .035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(16, 32, 45, .035) 1px, transparent 1px),
+        linear-gradient(180deg, #faf8f1 0%, #eef6f3 100%);
+      background-size: 36px 36px, 36px 36px, auto;
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif;
+      line-height: 1.75;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1280px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    .rail {
+      position: static;
+      overflow: hidden;
+      margin: 0 0 20px;
+      padding: 22px 24px 20px;
+      color: #e8f3f2;
+      background:
+        linear-gradient(180deg, var(--night) 0%, #061018 100%);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .brand {
+      display: grid;
+      gap: 10px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(34, 184, 180, .55);
+      background: rgba(34, 184, 180, .12);
+      border-radius: var(--radius);
+      font-weight: 800;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 0;
+      color: #a9bdc5;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .progress-shell {
+      margin: 18px 0;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .05);
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      color: #b7ccd1;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .progress-track {
+      height: 7px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, .12);
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--teal-2), var(--amber));
+      transition: width .12s ease;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+      padding: 0 0 18px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: var(--radius);
+      color: #b9cdd2;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .toc a:hover,
+    .toc a.active {
+      color: #fff;
+      background: rgba(34, 184, 180, .14);
+    }
+
+    .rail-note {
+      margin: 0;
+      padding: 12px;
+      border: 1px solid rgba(34, 184, 180, .25);
+      border-radius: var(--radius);
+      color: #bfd6da;
+      background: rgba(34, 184, 180, .06);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .rail,
+    .content,
+    .hero-copy,
+    .hero-demo,
+    section,
+    .demo-block,
+    .formula-card,
+    .plot-card,
+    .mini-plot {
+      min-width: 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p,
+    .toc a,
+    .rail-note,
+    .demo-head small,
+    .summary-item span {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .content {
+      width: 100%;
+      margin: 0;
+      padding: 0 0 24px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.04fr) minmax(360px, .96fr);
+      gap: 18px;
+      align-items: start;
+      min-height: 0;
+    }
+
+    .hero-copy,
+    .hero-demo {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 248, .92);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 14px 0 0;
+      color: var(--ink-soft);
+      font-size: 16px;
+    }
+
+    .formula-map {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 26px;
+    }
+
+    .formula-map span {
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink-soft);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .summary-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 12px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .summary-item strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1.1;
+      color: var(--teal);
+    }
+
+    .summary-item span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .hero-demo {
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      background:
+        linear-gradient(180deg, rgba(16, 43, 55, .96), rgba(9, 28, 38, .94));
+      color: #ecf8f6;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .demo-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .demo-title h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .demo-title small {
+      color: #9fc5c8;
+      font-size: 12px;
+    }
+
+    .hero-canvas {
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .04);
+      overflow: hidden;
+    }
+
+    .hero-canvas canvas,
+    .plot-card > canvas,
+    .mini-plot canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .hero-canvas canvas {
+      aspect-ratio: 16 / 9;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .control {
+      display: grid;
+      gap: 6px;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .06);
+      color: inherit;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+    }
+
+    .control.light {
+      border-color: var(--line);
+      background: #fff;
+      color: var(--ink-soft);
+    }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: inherit;
+      line-height: 1.35;
+    }
+
+    .control output {
+      color: var(--amber);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--teal);
+    }
+
+    select {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+    }
+
+    section {
+      scroll-margin-top: 20px;
+      margin-top: 24px;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 248, .94);
+      box-shadow: var(--shadow);
+    }
+
+    section h2 {
+      margin: 0;
+      font-size: 27px;
+      line-height: 1.32;
+      letter-spacing: 0;
+    }
+
+    section h3 {
+      margin: 24px 0 10px;
+      font-size: 20px;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    section p {
+      margin: 10px 0;
+      color: var(--ink-soft);
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 20px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 9px;
+      border-radius: var(--radius);
+      background: var(--night-2);
+      color: #ecf8f6;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .derive {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .formula-card {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--teal);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px 16px;
+      overflow: hidden;
+    }
+
+    .formula-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--teal);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+    }
+
+    .formula-card p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .formula-card mjx-container {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .formula-card mjx-container[display="true"] {
+      display: block;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 4px;
+    }
+
+    .logic-list {
+      display: grid;
+      gap: 9px;
+      margin: 14px 0;
+      padding: 0;
+      list-style: none;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .logic-list li {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+
+    .logic-list span {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius);
+      background: var(--surface-2);
+      color: var(--teal);
+      font-weight: 800;
+    }
+
+    .pll-diagram {
+      margin: 18px 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .pll-diagram svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #fff;
+      background: var(--night-2);
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .demo-block {
+      margin-top: 24px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .demo-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #f4f8f6;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .demo-head h3 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .demo-head small {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .demo-body {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 0;
+      min-height: 0;
+    }
+
+    .demo-controls {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      padding: 16px;
+      border-right: 1px solid var(--line);
+      background: #fbfcf8;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .metric {
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--teal);
+      font-size: 18px;
+      line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .plot-card {
+      min-height: 0;
+      padding: 12px;
+    }
+
+    .plot-card canvas {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      aspect-ratio: 16 / 8.4;
+    }
+
+    .split-plot {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .mini-plot {
+      min-height: 0;
+    }
+
+    .mini-plot canvas {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      aspect-ratio: 4 / 3;
+    }
+
+    .note-band {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border: 1px solid rgba(198, 132, 33, .35);
+      border-radius: var(--radius);
+      background: #fff8e8;
+      color: #5b4522;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+    }
+
+    .status-ok {
+      color: var(--green);
+    }
+
+    .status-warn {
+      color: var(--red);
+    }
+
+    .footer {
+      margin-top: 28px;
+      padding: 18px 0 0;
+      color: var(--muted);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1100px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-body {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-controls {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+    }
+
+    @media (max-width: 920px) {
+      .shell {
+        width: min(100% - 28px, 1280px);
+        padding-top: 18px;
+      }
+
+      .rail {
+        padding: 18px;
+      }
+
+      .toc,
+      .split-plot {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-demo {
+        background: linear-gradient(180deg, rgba(13, 35, 47, .96), rgba(9, 28, 38, .94));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .content {
+        padding-top: 18px;
+      }
+
+      .hero-copy,
+      .hero-demo,
+      section {
+        padding: 20px;
+      }
+
+      .hero h2 {
+        font-size: 27px;
+      }
+
+      section h2 {
+        font-size: 23px;
+      }
+
+      .summary-grid,
+      .control-grid,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head,
+      .demo-title,
+      .demo-head {
+        display: grid;
+      }
+
+      .demo-head small {
+        text-align: left;
+      }
+
+      .plot-card canvas,
+      .mini-plot canvas,
+      .hero-canvas canvas {
+        aspect-ratio: 4 / 3;
+      }
+    }
+  </style>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      },
+      svg: { fontCache: "global" }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="rail" aria-label="章节目录">
+      <div class="brand">
+        <div class="brand-mark">PLL</div>
+        <h1>4.2.1 基本的锁相环</h1>
+        <p>公式 (4.110)-(4.140) 的推导笔记与可调参数演示</p>
+      </div>
+      <div class="progress-shell">
+        <div class="progress-label"><span>阅读进度</span><span id="progressText">0%</span></div>
+        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+      <nav class="toc" id="toc">
+        <a href="#overview">总览</a>
+        <a href="#model">1. VCO 与闭环模型</a>
+        <a href="#bandwidth">2. 传递函数与噪声带宽</a>
+        <a href="#response">3. 暂态与稳态响应</a>
+        <a href="#first-order">4. 1 阶环</a>
+        <a href="#second-order">5. 2 阶环</a>
+        <a href="#third-order">6. 3 阶环</a>
+        <a href="#nth-order">7. N 阶环通式</a>
+      </nav>
+      <div class="rail-note">
+        本页将教材公式重新整理为推导链。演示采用线性化 PLL 模型，适合理解参数趋势；真实接收机还会叠加载波 NCO 量化、鉴相器非线性、噪声和失锁判据。
+      </div>
+    </aside>
+
+    <main>
+      <div class="content">
+        <div class="hero" id="overview">
+          <div class="hero-copy">
+            <div>
+              <h2>从“相位误差”推到“环路阶数与动态应力”</h2>
+              <p>
+                4.2.1 的主线很短：鉴相器得到 $\hat\theta(t)=\theta_i(t)-\theta_l(t)$，
+                环路滤波器决定 $F(s)$，VCO/NCO 自带积分器，三者闭合后得到
+                $H(s)$、$E(s)$、$B_n$ 和动态应力下的稳态相差。
+              </p>
+              <div class="formula-map" aria-label="公式编号地图">
+                <span>4.110 VCO 频率</span><span>4.111 相位积分</span><span>4.112 VCO 频域</span>
+                <span>4.113-4.119 闭环方程</span><span>4.120 噪声带宽</span><span>4.121 n 阶形式</span>
+                <span>4.122-4.123 响应分析</span><span>4.124-4.126 1 阶环</span>
+                <span>4.127-4.132 2 阶环</span><span>4.133-4.137 3 阶环</span><span>4.138-4.140 N 阶结论</span>
+              </div>
+            </div>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <strong>$H(s)$</strong>
+                <span>输入相位到本地相位的闭环传递函数</span>
+              </div>
+              <div class="summary-item">
+                <strong>$E(s)$</strong>
+                <span>输入相位到相位误差的误差传递函数</span>
+              </div>
+              <div class="summary-item">
+                <strong>$B_n$</strong>
+                <span>白噪声通过闭环后的等效单边带宽</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-demo">
+            <div class="demo-title">
+              <h3>线性 PLL 即时仿真</h3>
+              <small>调节环路阶数和自然频率，观察本地相位追踪输入相位</small>
+            </div>
+            <div class="hero-canvas">
+              <canvas id="heroCanvas" width="760" height="420" aria-label="PLL 仿真曲线"></canvas>
+            </div>
+            <div class="control-grid">
+              <div class="control">
+                <label for="heroOrder">阶数 <output id="heroOrderOut">2</output></label>
+                <input id="heroOrder" type="range" min="1" max="3" step="1" value="2">
+              </div>
+              <div class="control">
+                <label for="heroWn">$\omega_n$ <output id="heroWnOut">8.0</output></label>
+                <input id="heroWn" type="range" min="1" max="22" step="0.5" value="8">
+              </div>
+              <div class="control">
+                <label for="heroAccel">频率斜升 $\alpha$ <output id="heroAccelOut">5.0</output></label>
+                <input id="heroAccel" type="range" min="0" max="18" step="0.5" value="5">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section id="model">
+          <div class="section-head">
+            <div>
+              <h2>1. VCO 与闭环模型</h2>
+              <p>先把压控振荡器看成“输入控制量到输出相位”的积分器，再把鉴相器、滤波器和 VCO 串成闭环。</p>
+            </div>
+            <span class="tag">(4.110)-(4.119)</span>
+          </div>
+
+          <div class="pll-diagram" aria-label="基本锁相环功能框图">
+            <svg viewBox="0 0 980 260" role="img">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#315f9d"></path>
+                </marker>
+              </defs>
+              <rect x="1" y="1" width="978" height="258" fill="#fffdf8" stroke="rgba(16,32,45,.14)"></rect>
+              <text x="66" y="83" fill="#394c5b" font-size="21" font-family="sans-serif">输入相位 θi(s)</text>
+              <line x1="190" y1="78" x2="260" y2="78" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></line>
+              <circle cx="292" cy="78" r="30" fill="#eef7f5" stroke="#168f92" stroke-width="2"></circle>
+              <text x="282" y="86" fill="#168f92" font-size="24" font-family="sans-serif">Σ</text>
+              <text x="281" y="54" fill="#394c5b" font-size="18" font-family="sans-serif">+</text>
+              <text x="285" y="119" fill="#394c5b" font-size="18" font-family="sans-serif">-</text>
+              <line x1="322" y1="78" x2="402" y2="78" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></line>
+              <text x="344" y="58" fill="#394c5b" font-size="19" font-family="sans-serif">θ^(s)</text>
+              <rect x="404" y="38" width="150" height="80" rx="8" fill="#fff" stroke="#168f92" stroke-width="2"></rect>
+              <text x="445" y="86" fill="#10202d" font-size="22" font-family="sans-serif">F(s)</text>
+              <line x1="554" y1="78" x2="636" y2="78" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></line>
+              <text x="572" y="58" fill="#394c5b" font-size="18" font-family="sans-serif">vo(s)</text>
+              <rect x="638" y="38" width="150" height="80" rx="8" fill="#fff" stroke="#c68421" stroke-width="2"></rect>
+              <text x="672" y="86" fill="#10202d" font-size="22" font-family="sans-serif">k / s</text>
+              <line x1="788" y1="78" x2="902" y2="78" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></line>
+              <text x="815" y="58" fill="#394c5b" font-size="18" font-family="sans-serif">θl(s)</text>
+              <path d="M 850 78 C 850 188 292 188 292 108" fill="none" stroke="#315f9d" stroke-width="3" marker-end="url(#arrow)"></path>
+              <text x="514" y="202" fill="#394c5b" font-size="18" font-family="sans-serif">反馈本地相位 θl(s)</text>
+            </svg>
+          </div>
+
+          <div class="derive">
+            <div class="formula-card">
+              <strong>VCO 的时域和频域模型</strong>
+              $$ f_{\mathrm{vco}}(t)=ku(t) \tag{4.110} $$
+              $$ \theta_{\mathrm{vco}}(t)=\int_0^t f_{\mathrm{vco}}(\tau)\,d\tau \tag{4.111} $$
+              $$ \theta_{\mathrm{vco}}(s)=\frac{k}{s}U(s) \tag{4.112} $$
+              <p>频率积分得到相位，因此 VCO/NCO 在相位环里天然贡献一个 $1/s$ 积分器。</p>
+            </div>
+            <div class="formula-card">
+              <strong>环路滤波器接收相位误差</strong>
+              $$ v_o(s)=\hat\theta(s)F(s)=\left[\theta_i(s)-\theta_l(s)\right]F(s) \tag{4.113} $$
+              $$ \theta_l(s)=\frac{k}{s}\left[\theta_i(s)-\theta_l(s)\right]F(s) \tag{4.114} $$
+              <p>把滤波器输出送入 VCO，并用本地相位做负反馈，闭环方程就出现了。</p>
+            </div>
+            <div class="formula-card">
+              <strong>闭环解和相位误差</strong>
+              $$ \theta_l(s)=\frac{kF(s)}{s+kF(s)}\theta_i(s) \tag{4.115} $$
+              $$ \hat\theta(s)=\frac{s}{s+kF(s)}\theta_i(s) \tag{4.116} $$
+              $$ H(s)=\frac{\theta_l(s)}{\theta_i(s)}=\frac{kF(s)}{s+kF(s)} \tag{4.117} $$
+              $$ E(s)=\frac{\hat\theta(s)}{\theta_i(s)}=\frac{s}{s+kF(s)} \tag{4.118} $$
+              $$ E(s)=1-H(s) \tag{4.119} $$
+              <p>$H(s)$ 看“本地相位跟得上多少”，$E(s)$ 看“剩下多少相位误差”。二者互补。</p>
+            </div>
+          </div>
+
+          <div class="demo-block">
+            <div class="demo-head">
+              <h3>Demo 1：闭环锁定过程</h3>
+              <small>一阶线性环 $\dot\theta_l=k(\theta_i-\theta_l)$</small>
+            </div>
+            <div class="demo-body">
+              <div class="demo-controls">
+                <div class="control light">
+                  <label for="d1Gain">环路增益 k <output id="d1GainOut">5.0</output></label>
+                  <input id="d1Gain" type="range" min="0.5" max="14" step="0.5" value="5">
+                </div>
+                <div class="control light">
+                  <label for="d1Freq">输入频率阶跃 Δω <output id="d1FreqOut">4.0</output></label>
+                  <input id="d1Freq" type="range" min="0" max="10" step="0.2" value="4">
+                </div>
+                <div class="control light">
+                  <label for="d1Step">相位阶跃 θ0 <output id="d1StepOut">1.2</output></label>
+                  <input id="d1Step" type="range" min="0" max="6.28" step="0.1" value="1.2">
+                </div>
+                <div class="metric-grid">
+                  <div class="metric"><strong id="d1Err">0.80</strong><span>理论频率阶跃稳态误差</span></div>
+                  <div class="metric"><strong id="d1Tau">0.20s</strong><span>近似时间常数 1/k</span></div>
+                </div>
+              </div>
+              <div class="plot-card">
+                <canvas id="d1Canvas" width="900" height="430" aria-label="一阶 PLL 锁定曲线"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="bandwidth">
+          <div class="section-head">
+            <div>
+              <h2>2. 传递函数阶数与等效噪声带宽</h2>
+              <p>一旦 $F(s)$ 定下来，$H(s)$ 和 $E(s)$ 就定下来。$B_n$ 用 $|H(j2\pi f)|^2$ 的面积度量白噪声进入环路后的等效带宽。</p>
+            </div>
+            <span class="tag">(4.120)-(4.121)</span>
+          </div>
+
+          <div class="formula-card">
+            <strong>等效噪声带宽</strong>
+            $$ B_n=\int_0^\infty \left|H(j2\pi f)\right|^2\,df \tag{4.120} $$
+            <p>若输入单边噪声谱密度为 $N_0$，输出噪声功率等价于 $P_{N0}=B_nN_0$。</p>
+          </div>
+
+          <div class="formula-card">
+            <strong>按表 4.1 的阶数关系整理的 n 阶闭环形式</strong>
+            $$ H(s)=\frac{a_0+a_1s+a_2s^2+\cdots+a_{n-1}s^{n-1}}{b_0+b_1s+b_2s^2+\cdots+b_ns^n} \tag{4.121} $$
+            <p>分母中 $s$ 的最高幂次就是闭环阶数，也对应闭环里积分器的个数。</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>阶数</th>
+                  <th>$H(s)$</th>
+                  <th>$B_n$</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 阶</td>
+                  <td>$\dfrac{a_0}{b_0+b_1s}$</td>
+                  <td>$\dfrac{a_0^2}{4b_0b_1}$</td>
+                </tr>
+                <tr>
+                  <td>2 阶</td>
+                  <td>$\dfrac{a_0+a_1s}{b_0+b_1s+b_2s^2}$</td>
+                  <td>$\dfrac{a_0^2b_2+a_1^2b_0}{4b_0b_1b_2}$</td>
+                </tr>
+                <tr>
+                  <td>3 阶</td>
+                  <td>$\dfrac{a_0+a_1s+a_2s^2}{b_0+b_1s+b_2s^2+b_3s^3}$</td>
+                  <td>$\dfrac{a_2^2b_0b_1+(a_1^2-2a_0a_2)b_0b_3+a_0^2b_2b_3}{4b_0b_3(b_1b_2-b_0b_3)}$</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="demo-block">
+            <div class="demo-head">
+              <h3>Demo 2：$H(s)$、$E(s)$ 与 $B_n$</h3>
+              <small>频率响应面积越大，等效噪声带宽越大</small>
+            </div>
+            <div class="demo-body">
+              <div class="demo-controls">
+                <div class="control light">
+                  <label for="d2Order">环路阶数 <output id="d2OrderOut">2</output></label>
+                  <input id="d2Order" type="range" min="1" max="3" step="1" value="2">
+                </div>
+                <div class="control light">
+                  <label for="d2Wn">自然频率 $\omega_n$ <output id="d2WnOut">8.0</output></label>
+                  <input id="d2Wn" type="range" min="1" max="30" step="0.5" value="8">
+                </div>
+                <div class="control light">
+                  <label for="d2Zeta">2 阶阻尼 $\zeta$ <output id="d2ZetaOut">0.707</output></label>
+                  <input id="d2Zeta" type="range" min="0.3" max="1.6" step="0.01" value="0.707">
+                </div>
+                <div class="control light">
+                  <label for="d2A3">3 阶 a3 <output id="d2A3Out">1.10</output></label>
+                  <input id="d2A3" type="range" min="0.6" max="2.0" step="0.05" value="1.1">
+                </div>
+                <div class="control light">
+                  <label for="d2B3">3 阶 b3 <output id="d2B3Out">2.40</output></label>
+                  <input id="d2B3" type="range" min="1.0" max="4.0" step="0.05" value="2.4">
+                </div>
+                <div class="metric-grid">
+                  <div class="metric"><strong id="d2Bn">4.24</strong><span>等效噪声带宽 Bn</span></div>
+                  <div class="metric"><strong id="d2Coeff">0.530</strong><span>Bn / ωn</span></div>
+                </div>
+              </div>
+              <div class="plot-card">
+                <canvas id="d2Canvas" width="900" height="430" aria-label="传递函数频率响应"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="response">
+          <div class="section-head">
+            <div>
+              <h2>3. 暂态响应与稳态响应</h2>
+              <p>暂态看“多久跟上”，稳态看“最后还差多少”。这一节后面的 1、2、3 阶环推导，全部是在终值定理框架下完成的。</p>
+            </div>
+            <span class="tag">(4.122)-(4.123)</span>
+          </div>
+
+          <div class="formula-card">
+            <strong>暂态响应</strong>
+            $$ \theta_l(t)=\mathcal{L}^{-1}\left[H(s)u(s)\right] \tag{4.122} $$
+            <p>给定输入 $u(t)$ 后，把 $H(s)u(s)$ 反变换回时域，就得到本地相位输出曲线。</p>
+          </div>
+
+          <div class="formula-card">
+            <strong>终值定理</strong>
+            $$ \theta_{l,\infty}=\lim_{s\to 0}sH(s)u(s) \tag{4.123} $$
+            $$ \hat\theta_{e,\infty}=\lim_{s\to 0}sE(s)\theta_i(s) $$
+            <p>教材用 (4.123) 写本地输出终值；分析相位误差时，把 $H(s)$ 换成 $E(s)$ 即可。</p>
+          </div>
+
+          <ul class="logic-list">
+            <li><span>1</span><div>相位阶跃：$\theta_i(t)=\theta_0u(t)$，对应距离突变。</div></li>
+            <li><span>2</span><div>频率阶跃：$\theta_i(t)=\Delta\omega t\,u(t)$，对应速度突变。</div></li>
+            <li><span>3</span><div>频率斜升：$\theta_i(t)=\frac{1}{2}\alpha t^2$，对应加速度突变。</div></li>
+          </ul>
+
+          <div class="demo-block">
+            <div class="demo-head">
+              <h3>Demo 3：三类输入的输出和误差</h3>
+              <small>阶数越高，可无偏跟踪的动态阶次越高</small>
+            </div>
+            <div class="demo-body">
+              <div class="demo-controls">
+                <div class="control light">
+                  <label for="d3Order">环路阶数 <output id="d3OrderOut">2</output></label>
+                  <input id="d3Order" type="range" min="1" max="3" step="1" value="2">
+                </div>
+                <div class="control light">
+                  <label for="d3Input">输入类型</label>
+                  <select id="d3Input">
+                    <option value="phase">相位阶跃 θ0</option>
+                    <option value="freq" selected>频率阶跃 Δωt</option>
+                    <option value="ramp">频率斜升 1/2 αt²</option>
+                  </select>
+                </div>
+                <div class="control light">
+                  <label for="d3Wn">自然频率 $\omega_n$ <output id="d3WnOut">7.0</output></label>
+                  <input id="d3Wn" type="range" min="1" max="22" step="0.5" value="7">
+                </div>
+                <div class="control light">
+                  <label for="d3Amp">输入强度 <output id="d3AmpOut">4.0</output></label>
+                  <input id="d3Amp" type="range" min="0.5" max="16" step="0.5" value="4">
+                </div>
+                <div class="metric-grid">
+                  <div class="metric"><strong id="d3Steady">0.00</strong><span>仿真末端误差</span></div>
+                  <div class="metric"><strong id="d3Theory">0</strong><span>终值定理预期</span></div>
+                </div>
+              </div>
+              <div class="plot-card">
+                <canvas id="d3Canvas" width="900" height="430" aria-label="动态输入响应曲线"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="first-order">
+          <div class="section-head">
+            <div>
+              <h2>4. 1 阶环：只含 VCO/NCO 积分器</h2>
+              <p>$F(s)=1$ 时，环路滤波器不再额外积分，闭环只有 VCO/NCO 自身的一个积分器。</p>
+            </div>
+            <span class="tag">(4.124)-(4.126)</span>
+          </div>
+
+          <div class="derive">
+            <div class="formula-card">
+              <strong>由 $F(s)=1$ 得到闭环函数</strong>
+              $$ H(s)=\frac{k}{s+k}, \qquad E(s)=\frac{s}{s+k} $$
+              $$ B_n=\frac{k}{4} \tag{4.124} $$
+              <p>带宽随 $k$ 线性增大：响应变快，噪声也放进来更多。</p>
+            </div>
+            <div class="formula-card">
+              <strong>三种输入的稳态相差</strong>
+              $$ \theta_i(t)=\theta_0u(t)\Rightarrow \hat\theta_{e,\infty}=0 $$
+              $$ \theta_i(t)=\Delta\omega t\,u(t)\Rightarrow
+              \hat\theta_{e,\infty}=\lim_{s\to0}sE(s)\frac{\Delta\omega}{s^2}=\frac{\Delta\omega}{k} \tag{4.125} $$
+              $$ \theta_i(t)=\frac{1}{2}\alpha t^2\Rightarrow
+              \hat\theta_{e,\infty}=\lim_{s\to0}sE(s)\frac{\alpha}{s^3}=\infty \tag{4.126} $$
+            </div>
+          </div>
+
+          <div class="note-band">
+            结论：1 阶环可以消除相位阶跃误差，但频率阶跃会留下固定相差，频率斜升会导致误差无限增长。因此接收机若无外部动态辅助，通常不会用 1 阶环承担主跟踪。
+          </div>
+
+          <div class="demo-block">
+            <div class="demo-head">
+              <h3>Demo 4：1 阶环的稳态误差</h3>
+              <small>频率阶跃误差 $\Delta\omega/k$ 直接可见</small>
+            </div>
+            <div class="demo-body">
+              <div class="demo-controls">
+                <div class="control light">
+                  <label for="d4K">k <output id="d4KOut">5.0</output></label>
+                  <input id="d4K" type="range" min="0.5" max="16" step="0.5" value="5">
+                </div>
+                <div class="control light">
+                  <label for="d4Dw">Δω <output id="d4DwOut">4.0</output></label>
+                  <input id="d4Dw" type="range" min="0" max="12" step="0.2" value="4">
+                </div>
+                <div class="control light">
+                  <label for="d4Alpha">α <output id="d4AlphaOut">2.0</output></label>
+                  <input id="d4Alpha" type="range" min="0" max="10" step="0.5" value="2">
+                </div>
+                <div class="metric-grid">
+                  <div class="metric"><strong id="d4FreqErr">0.80</strong><span>Δω/k</span></div>
+                  <div class="metric"><strong id="d4Bn">1.25</strong><span>Bn=k/4</span></div>
+                </div>
+              </div>
+              <div class="plot-card">
+                <canvas id="d4Canvas" width="900" height="430" aria-label="一阶环误差对比"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="second-order">
+          <div class="section-head">
+            <div>
+              <h2>5. 2 阶环：比例积分滤波器</h2>
+              <p>2 阶环在 NCO 积分器之外，又在环路滤波器中加入一个积分通道，因此可以无偏跟踪频率阶跃。</p>
+            </div>
+            <span class="tag">(4.127)-(4.132)</span>
+          </div>
+
+          <div class="derive">
+            <div class="formula-card">
+              <strong>有源比例积分器与标准二阶分母</strong>
+              $$ F(s)=\frac{1+s\tau_1}{s\tau_2} $$
+              $$ H(s)=\frac{\frac{k\tau_1}{\tau_2}s+\frac{k}{\tau_2}}{s^2+\frac{k\tau_1}{\tau_2}s+\frac{k}{\tau_2}},
+              \qquad
+              E(s)=\frac{s^2}{s^2+\frac{k\tau_1}{\tau_2}s+\frac{k}{\tau_2}} $$
+              $$ s^2+\frac{k\tau_1}{\tau_2}s+\frac{k}{\tau_2}\triangleq s^2+2\zeta\omega_ns+\omega_n^2 \tag{4.127} $$
+              $$ \omega_n=\sqrt{\frac{k}{\tau_2}},\qquad \zeta=\frac{1}{2}\omega_n\tau_1 \tag{4.128} $$
+            </div>
+            <div class="formula-card">
+              <strong>闭环形式与噪声带宽</strong>
+              $$ H(s)=\frac{2\zeta\omega_ns+\omega_n^2}{s^2+2\zeta\omega_ns+\omega_n^2} $$
+              $$ B_n=\frac{\omega_n}{8}\left(4\zeta+\frac{1}{\zeta}\right) \tag{4.129} $$
+              <p>$\zeta=0.707$ 时，$B_n\approx0.53\omega_n$。</p>
+            </div>
+            <div class="formula-card">
+              <strong>三种输入的稳态相差</strong>
+              $$ \theta_i(t)=\theta_0u(t)\Rightarrow
+              \hat\theta_{e,\infty}=\lim_{s\to0}\frac{\theta_0s^2}{s^2+2\zeta\omega_ns+\omega_n^2}=0 \tag{4.130} $$
+              $$ \theta_i(t)=\Delta\omega t\,u(t)\Rightarrow
+              \hat\theta_{e,\infty}=\lim_{s\to0}\frac{\Delta\omega s}{s^2+2\zeta\omega_ns+\omega_n^2}=0 \tag{4.131} $$
+              $$ \theta_i(t)=\frac{1}{2}\alpha t^2\Rightarrow
+              \hat\theta_{e,\infty}=\lim_{s\to0}\frac{\alpha}{s^2+2\zeta\omega_ns+\omega_n^2}=\frac{\alpha}{\omega_n^2} \tag{4.132} $$
+            </div>
+          </div>
+
+          <div class="demo-block">
+            <div class="demo-head">
+              <h3>Demo 5：2 阶环阻尼、带宽与斜升误差</h3>
+              <small>减小动态误差需要更高 $\omega_n$，但 $B_n$ 同时升高</small>
+            </div>
+            <div class="demo-body">
+              <div class="demo-controls">
+                <div class="control light">
+                  <label for="d5Wn">ωn <output id="d5WnOut">8.0</output></label>
+                  <input id="d5Wn" type="range" min="1" max="24" step="0.5" value="8">
+                </div>
+                <div class="control light">
+                  <label for="d5Zeta">ζ <output id="d5ZetaOut">0.707</output></label>
+                  <input id="d5Zeta" type="range" min="0.25" max="1.8" step="0.01" value="0.707">
+                </div>
+                <div class="control light">
+                  <label for="d5Alpha">α <output id="d5AlphaOut">8.0</output></label>
+                  <input id="d5Alpha" type="range" min="0" max="32" step="0.5" value="8">
+                </div>
+                <div class="metric-grid">
+                  <div class="metric"><strong id="d5Bn">4.24</strong><span>Bn</span></div>
+                  <div class="metric"><strong id="d5RampErr">0.125</strong><span>α/ωn²</span></div>
+                </div>
+              </div>
+              <div class="plot-card">
+                <div class="split-plot">
+                  <div class="mini-plot"><canvas id="d5CanvasA" width="450" height="430" aria-label="二阶环阶跃响应"></canvas></div>
+                  <div class="mini-plot"><canvas id="d5CanvasB" width="450" height="430" aria-label="二阶环斜升误差"></canvas></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="third-order">
+          <div class="section-head">
+            <div>
+              <h2>6. 3 阶环：能无偏跟踪频率斜升</h2>
+              <p>3 阶环把滤波器扩展成两个积分通道和一个比例通道，但稳定性不再无条件成立。</p>
+            </div>
+            <span class="tag">(4.133)-(4.137)</span>
+          </div>
+
+          <div class="derive">
+            <div class="formula-card">
+              <strong>3 阶环路滤波器</strong>
+              $$ F(s)=\tau_1+\frac{\tau_2}{s}+\frac{\tau_3}{s^2} $$
+              $$ H(s)=\frac{k\tau_1s^2+k\tau_2s+k\tau_3}{s^3+k\tau_1s^2+k\tau_2s+k\tau_3},
+              \qquad
+              E(s)=\frac{s^3}{s^3+k\tau_1s^2+k\tau_2s+k\tau_3} $$
+            </div>
+            <div class="formula-card">
+              <strong>3 阶环等效噪声带宽</strong>
+              $$ B_n=\frac{k\tau_1}{4}+\frac{k\tau_2^2}{4(k\tau_1\tau_2-\tau_3)} \tag{4.133} $$
+            </div>
+            <div class="formula-card">
+              <strong>三种输入的稳态相差</strong>
+              $$ \theta_i(t)=\theta_0u(t)\Rightarrow \hat\theta_{e,\infty}=0 \tag{4.134} $$
+              $$ \theta_i(t)=\Delta\omega t\,u(t)\Rightarrow \hat\theta_{e,\infty}=0 \tag{4.135} $$
+              $$ \theta_i(t)=\frac{1}{2}\alpha t^2\Rightarrow \hat\theta_{e,\infty}=0 \tag{4.136} $$
+              $$ k\tau_1>0,\quad k\tau_2>0,\quad k\tau_3>0,\quad k\tau_1\cdot k\tau_2>k\tau_3 \tag{4.137} $$
+            </div>
+          </div>
+
+          <div class="demo-block">
+            <div class="demo-head">
+              <h3>Demo 6：3 阶环稳定性和斜升跟踪</h3>
+              <small>默认采用 $a_3=1.1,\ b_3=2.4$ 的常用优化参数</small>
+            </div>
+            <div class="demo-body">
+              <div class="demo-controls">
+                <div class="control light">
+                  <label for="d6Wn">ωn <output id="d6WnOut">6.0</output></label>
+                  <input id="d6Wn" type="range" min="1" max="18" step="0.5" value="6">
+                </div>
+                <div class="control light">
+                  <label for="d6A3">a3 <output id="d6A3Out">1.10</output></label>
+                  <input id="d6A3" type="range" min="0.4" max="2.4" step="0.05" value="1.1">
+                </div>
+                <div class="control light">
+                  <label for="d6B3">b3 <output id="d6B3Out">2.40</output></label>
+                  <input id="d6B3" type="range" min="0.6" max="4.0" step="0.05" value="2.4">
+                </div>
+                <div class="control light">
+                  <label for="d6Alpha">α <output id="d6AlphaOut">12.0</output></label>
+                  <input id="d6Alpha" type="range" min="0" max="36" step="0.5" value="12">
+                </div>
+                <div class="metric-grid">
+                  <div class="metric"><strong id="d6Bn">4.71</strong><span>Bn</span></div>
+                  <div class="metric"><strong id="d6Stable">稳定</strong><span>Routh 条件</span></div>
+                </div>
+              </div>
+              <div class="plot-card">
+                <canvas id="d6Canvas" width="900" height="430" aria-label="三阶环稳定性和跟踪曲线"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="nth-order">
+          <div class="section-head">
+            <div>
+              <h2>7. N 阶环通式：阶数、动态应力和带宽折中</h2>
+              <p>1、2、3 阶的推导可以推广：N 阶环的稳态误差由输入相位的 N 阶导数和 $\omega_n^N$ 控制。</p>
+            </div>
+            <span class="tag">(4.138)-(4.140)</span>
+          </div>
+
+          <div class="derive">
+            <div class="formula-card">
+              <strong>N 阶闭环和误差函数</strong>
+              $$ H(s)=\frac{a_0s^{N-1}+a_1s^{N-2}+\cdots+a_{N-1}}{s^N+a_0s^{N-1}+a_1s^{N-2}+\cdots+a_{N-1}} \tag{4.138} $$
+              $$ E(s)=\frac{s^N}{s^N+a_0s^{N-1}+a_1s^{N-2}+\cdots+a_{N-1}} \tag{4.139} $$
+            </div>
+            <div class="formula-card">
+              <strong>动态应力稳态相差</strong>
+              $$ \omega_n=(a_{N-1})^{1/N} $$
+              $$ \hat\theta_{e,\infty}=\lim_{s\to0}sE(s)\theta_i(s)
+              =\lim_{s\to0}
+              \frac{s^{N+1}\theta_i(s)}{s^N+a_0s^{N-1}+a_1s^{N-2}+\cdots+a_{N-1}}
+              =\lim_{t\to\infty}\frac{d^N\theta_i(t)/dt^N}{\omega_n^N} \tag{4.140} $$
+              <p>只要输入相位的第 $N$ 阶导数在稳态不是 0，N 阶环就会留下与 $\omega_n^{-N}$ 成正比的稳态误差；若动态阶次更高，误差会发散。</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>环路</th>
+                  <th>图 4.30 系数写法</th>
+                  <th>公式系数对应</th>
+                  <th>$B_n$</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 阶</td>
+                  <td>$\omega_n$</td>
+                  <td>$k$</td>
+                  <td>$\omega_n/4$</td>
+                </tr>
+                <tr>
+                  <td>2 阶</td>
+                  <td>$(\omega_n)^2,\ a_2\omega_n$</td>
+                  <td>$k/\tau_2,\ k\tau_1/\tau_2$</td>
+                  <td>$\dfrac{1+a_2^2}{4a_2}\omega_n$，$a_2=1.414$ 时约 $0.53\omega_n$</td>
+                </tr>
+                <tr>
+                  <td>3 阶</td>
+                  <td>$(\omega_n)^3,\ a_3(\omega_n)^2,\ b_3\omega_n$</td>
+                  <td>$k\tau_3,\ k\tau_2,\ k\tau_1$</td>
+                  <td>$\dfrac{a_3b_3^2+a_3^2-b_3}{4(a_3b_3-1)}\omega_n$，$a_3=1.1,b_3=2.4$ 时约 $0.7845\omega_n$</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="demo-block">
+            <div class="demo-head">
+              <h3>Demo 7：N 阶稳态误差缩放律</h3>
+              <small>$\hat\theta_{e,\infty}\propto \omega_n^{-N}$，但 $B_n$ 大致随 $\omega_n$ 增大</small>
+            </div>
+            <div class="demo-body">
+              <div class="demo-controls">
+                <div class="control light">
+                  <label for="d7N">N <output id="d7NOut">2</output></label>
+                  <input id="d7N" type="range" min="1" max="5" step="1" value="2">
+                </div>
+                <div class="control light">
+                  <label for="d7Wn">ωn <output id="d7WnOut">8.0</output></label>
+                  <input id="d7Wn" type="range" min="1" max="28" step="0.5" value="8">
+                </div>
+                <div class="control light">
+                  <label for="d7Stress">第 N 阶动态强度 <output id="d7StressOut">10.0</output></label>
+                  <input id="d7Stress" type="range" min="0" max="40" step="0.5" value="10">
+                </div>
+                <div class="metric-grid">
+                  <div class="metric"><strong id="d7Err">0.156</strong><span>stress / ωn^N</span></div>
+                  <div class="metric"><strong id="d7Bn">4.24</strong><span>近似带宽</span></div>
+                </div>
+              </div>
+              <div class="plot-card">
+                <canvas id="d7Canvas" width="900" height="430" aria-label="N 阶稳态误差和带宽折中"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            页面公式依据本仓库第 4 章 PDF 的 4.2.1 节整理；文字为学习笔记式重述，演示为线性化模型的工程直觉辅助。
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    const COLORS = {
+      ink: "#10202d",
+      soft: "#394c5b",
+      muted: "#6a7883",
+      line: "rgba(16,32,45,.16)",
+      teal: "#168f92",
+      teal2: "#22b8b4",
+      blue: "#315f9d",
+      amber: "#c68421",
+      red: "#b84a42",
+      green: "#527d36",
+      paper: "#fffdf8"
+    };
+
+    function num(id) {
+      return Number($(id).value);
+    }
+
+    function setText(id, value) {
+      const node = $(id);
+      if (node) node.textContent = value;
+    }
+
+    function clamp(v, min, max) {
+      return Math.min(max, Math.max(min, v));
+    }
+
+    function setupCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.max(1, Math.round(rect.width * dpr));
+      const height = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, width: rect.width, height: rect.height };
+    }
+
+    function clear(ctx, width, height, dark = false) {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = dark ? "#0b1924" : COLORS.paper;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    function drawFrame(ctx, pad, width, height, xLabel, yLabel, dark = false) {
+      const grid = dark ? "rgba(255,255,255,.12)" : COLORS.line;
+      const text = dark ? "rgba(236,248,246,.82)" : COLORS.soft;
+      const w = width - pad.l - pad.r;
+      const h = height - pad.t - pad.b;
+      ctx.strokeStyle = grid;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.t + h * i / 4;
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(width - pad.r, y);
+      }
+      for (let i = 0; i <= 5; i++) {
+        const x = pad.l + w * i / 5;
+        ctx.moveTo(x, pad.t);
+        ctx.lineTo(x, height - pad.b);
+      }
+      ctx.stroke();
+      ctx.strokeStyle = dark ? "rgba(255,255,255,.3)" : "rgba(16,32,45,.34)";
+      ctx.strokeRect(pad.l, pad.t, w, h);
+      ctx.fillStyle = text;
+      ctx.font = "12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(xLabel, pad.l + w / 2, height - 12);
+      ctx.save();
+      ctx.translate(18, pad.t + h / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+    }
+
+    function plotSeries(ctx, series, pad, width, height, opts = {}) {
+      const all = series.flatMap((s) => s.data.map((p) => p.y).filter(Number.isFinite));
+      const xAll = series.flatMap((s) => s.data.map((p) => p.x).filter(Number.isFinite));
+      let minY = opts.minY ?? Math.min(...all, 0);
+      let maxY = opts.maxY ?? Math.max(...all, 1);
+      if (Math.abs(maxY - minY) < 1e-9) {
+        maxY += 1;
+        minY -= 1;
+      }
+      const minX = opts.minX ?? Math.min(...xAll, 0);
+      const maxX = opts.maxX ?? Math.max(...xAll, 1);
+      const w = width - pad.l - pad.r;
+      const h = height - pad.t - pad.b;
+      const xToPx = (x) => pad.l + ((x - minX) / (maxX - minX)) * w;
+      const yToPx = (y) => pad.t + (1 - (y - minY) / (maxY - minY)) * h;
+
+      if (minY < 0 && maxY > 0) {
+        ctx.strokeStyle = "rgba(16,32,45,.32)";
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(pad.l, yToPx(0));
+        ctx.lineTo(width - pad.r, yToPx(0));
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      series.forEach((s) => {
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = s.width || 2.4;
+        ctx.beginPath();
+        s.data.forEach((p, i) => {
+          const x = xToPx(p.x);
+          const y = yToPx(p.y);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      });
+
+      if (opts.legend) {
+        ctx.font = "12px sans-serif";
+        let x = pad.l + 8;
+        const y = pad.t + 16;
+        opts.legend.forEach((item) => {
+          ctx.fillStyle = item.color;
+          ctx.fillRect(x, y - 9, 18, 3);
+          ctx.fillStyle = opts.dark ? "rgba(236,248,246,.82)" : COLORS.soft;
+          ctx.fillText(item.label, x + 24, y - 5);
+          x += item.label.length * 12 + 56;
+        });
+      }
+    }
+
+    function inputValue(type, amp, t) {
+      if (type === "phase") return amp;
+      if (type === "freq") return amp * t;
+      return 0.5 * amp * t * t;
+    }
+
+    function simulateLoop({ order = 2, wn = 8, zeta = 0.707, a3 = 1.1, b3 = 2.4, type = "freq", amp = 4, duration = 4, dt = 0.002 }) {
+      const data = [];
+      let thetaL = 0;
+      let q1 = 0;
+      let q2 = 0;
+      const a2 = 2 * zeta;
+      const steps = Math.floor(duration / dt);
+      for (let i = 0; i <= steps; i++) {
+        const t = i * dt;
+        const thetaI = inputValue(type, amp, t);
+        const err = thetaI - thetaL;
+        let control = 0;
+        if (order === 1) {
+          control = wn * err;
+        } else if (order === 2) {
+          q1 += err * dt;
+          control = a2 * wn * err + wn * wn * q1;
+        } else {
+          q1 += err * dt;
+          q2 += q1 * dt;
+          control = b3 * wn * err + a3 * wn * wn * q1 + Math.pow(wn, 3) * q2;
+        }
+        thetaL += control * dt;
+        if (i % 8 === 0) data.push({ x: t, input: thetaI, local: thetaL, err });
+      }
+      return data;
+    }
+
+    function theoreticalError(order, type, amp, wn) {
+      if (type === "phase") return "0";
+      if (type === "freq") return order === 1 ? (amp / wn).toFixed(3) : "0";
+      if (type === "ramp") {
+        if (order === 1) return "∞";
+        if (order === 2) return (amp / (wn * wn)).toFixed(3);
+        return "0";
+      }
+      return "0";
+    }
+
+    function bandwidth(order, wn, zeta = 0.707, a3 = 1.1, b3 = 2.4) {
+      if (order === 1) return wn / 4;
+      if (order === 2) return wn / 8 * (4 * zeta + 1 / zeta);
+      const denom = 4 * (a3 * b3 - 1);
+      return denom > 0 ? ((a3 * b3 * b3 + a3 * a3 - b3) / denom) * wn : NaN;
+    }
+
+    function hMag(order, omega, wn, zeta = 0.707, a3 = 1.1, b3 = 2.4) {
+      const jw = { re: 0, im: omega };
+      const mul = (a, b) => ({ re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re });
+      const add = (a, b) => ({ re: a.re + b.re, im: a.im + b.im });
+      const divMag = (n, d) => Math.hypot(n.re, n.im) / Math.max(1e-12, Math.hypot(d.re, d.im));
+      if (order === 1) {
+        return wn / Math.hypot(wn, omega);
+      }
+      if (order === 2) {
+        const a2 = 2 * zeta;
+        const s2 = mul(jw, jw);
+        const n = add({ re: wn * wn, im: 0 }, { re: 0, im: a2 * wn * omega });
+        const d = add(add(s2, { re: wn * wn, im: 0 }), { re: 0, im: a2 * wn * omega });
+        return divMag(n, d);
+      }
+      const s2 = mul(jw, jw);
+      const s3 = mul(s2, jw);
+      const n = add(add({ re: Math.pow(wn, 3), im: 0 }, { re: 0, im: a3 * wn * wn * omega }), { re: b3 * wn * s2.re, im: b3 * wn * s2.im });
+      const d = add(add(add(s3, { re: b3 * wn * s2.re, im: b3 * wn * s2.im }), { re: 0, im: a3 * wn * wn * omega }), { re: Math.pow(wn, 3), im: 0 });
+      return divMag(n, d);
+    }
+
+    function drawHero() {
+      const order = Math.round(num("#heroOrder"));
+      const wn = num("#heroWn");
+      const alpha = num("#heroAccel");
+      setText("#heroOrderOut", order);
+      setText("#heroWnOut", wn.toFixed(1));
+      setText("#heroAccelOut", alpha.toFixed(1));
+      const { ctx, width, height } = setupCanvas($("#heroCanvas"));
+      clear(ctx, width, height, true);
+      const pad = { l: 54, r: 22, t: 26, b: 46 };
+      drawFrame(ctx, pad, width, height, "t / s", "相位 / rad", true);
+      const data = simulateLoop({ order, wn, type: "ramp", amp: alpha, duration: 3.2, dt: 0.0015 });
+      plotSeries(ctx, [
+        { data: data.map((d) => ({ x: d.x, y: d.input })), color: "#ecf8f6", width: 2.4 },
+        { data: data.map((d) => ({ x: d.x, y: d.local })), color: COLORS.teal2, width: 2.8 },
+        { data: data.map((d) => ({ x: d.x, y: d.err })), color: COLORS.amber, width: 2.2 }
+      ], pad, width, height, {
+        legend: [
+          { label: "输入 θi", color: "#ecf8f6" },
+          { label: "本地 θl", color: COLORS.teal2 },
+          { label: "误差 θ^", color: COLORS.amber }
+        ],
+        dark: true
+      });
+      ctx.fillStyle = "rgba(236,248,246,.78)";
+      ctx.font = "13px sans-serif";
+      const lastErr = data[data.length - 1].err;
+      ctx.fillText(`末端误差 ${lastErr.toFixed(3)} rad · Bn≈${bandwidth(order, wn).toFixed(2)} Hz`, pad.l + 8, height - 18);
+    }
+
+    function drawD1() {
+      const k = num("#d1Gain");
+      const dw = num("#d1Freq");
+      const step = num("#d1Step");
+      setText("#d1GainOut", k.toFixed(1));
+      setText("#d1FreqOut", dw.toFixed(1));
+      setText("#d1StepOut", step.toFixed(1));
+      setText("#d1Err", (dw / k).toFixed(2));
+      setText("#d1Tau", `${(1 / k).toFixed(2)}s`);
+      const { ctx, width, height } = setupCanvas($("#d1Canvas"));
+      clear(ctx, width, height);
+      const pad = { l: 54, r: 22, t: 24, b: 44 };
+      drawFrame(ctx, pad, width, height, "t / s", "相位 / rad");
+      const data = [];
+      let local = 0;
+      const dt = 0.004;
+      for (let t = 0; t <= 5; t += dt) {
+        const input = step + dw * t;
+        const err = input - local;
+        local += k * err * dt;
+        if (Math.round(t / dt) % 4 === 0) data.push({ x: t, input, local, err });
+      }
+      plotSeries(ctx, [
+        { data: data.map((d) => ({ x: d.x, y: d.input })), color: COLORS.blue },
+        { data: data.map((d) => ({ x: d.x, y: d.local })), color: COLORS.teal },
+        { data: data.map((d) => ({ x: d.x, y: d.err })), color: COLORS.amber }
+      ], pad, width, height, {
+        legend: [
+          { label: "θi", color: COLORS.blue },
+          { label: "θl", color: COLORS.teal },
+          { label: "θ^", color: COLORS.amber }
+        ]
+      });
+    }
+
+    function drawD2() {
+      const order = Math.round(num("#d2Order"));
+      const wn = num("#d2Wn");
+      const zeta = num("#d2Zeta");
+      const a3 = num("#d2A3");
+      const b3 = num("#d2B3");
+      const bn = bandwidth(order, wn, zeta, a3, b3);
+      setText("#d2OrderOut", order);
+      setText("#d2WnOut", wn.toFixed(1));
+      setText("#d2ZetaOut", zeta.toFixed(3));
+      setText("#d2A3Out", a3.toFixed(2));
+      setText("#d2B3Out", b3.toFixed(2));
+      setText("#d2Bn", Number.isFinite(bn) ? bn.toFixed(2) : "不稳");
+      setText("#d2Coeff", Number.isFinite(bn) ? (bn / wn).toFixed(3) : "--");
+      const { ctx, width, height } = setupCanvas($("#d2Canvas"));
+      clear(ctx, width, height);
+      const pad = { l: 58, r: 22, t: 24, b: 48 };
+      drawFrame(ctx, pad, width, height, "频率 f / Hz", "|H|, |E|");
+      const maxF = Math.max(wn * 3, 20);
+      const pointsH = [];
+      const pointsE = [];
+      const pointsArea = [];
+      for (let i = 0; i <= 360; i++) {
+        const f = maxF * i / 360;
+        const omega = 2 * Math.PI * f;
+        const h = hMag(order, omega, wn, zeta, a3, b3);
+        pointsH.push({ x: f, y: h });
+        pointsE.push({ x: f, y: clamp(Math.abs(1 - h), 0, 1.8) });
+        pointsArea.push({ x: f, y: h * h });
+      }
+      plotSeries(ctx, [
+        { data: pointsH, color: COLORS.teal, width: 2.6 },
+        { data: pointsArea, color: COLORS.amber, width: 2.2 },
+        { data: pointsE, color: COLORS.blue, width: 2 }
+      ], pad, width, height, {
+        minY: 0,
+        maxY: 1.45,
+        minX: 0,
+        maxX: maxF,
+        legend: [
+          { label: "|H|", color: COLORS.teal },
+          { label: "|H|²", color: COLORS.amber },
+          { label: "近似 |E|", color: COLORS.blue }
+        ]
+      });
+      ctx.fillStyle = COLORS.soft;
+      ctx.font = "12px sans-serif";
+      ctx.fillText(`Bn 是 |H|² 曲线从 0 到 ∞ 的面积；当前按公式计算 Bn=${Number.isFinite(bn) ? bn.toFixed(3) : "无效"}`, pad.l + 8, height - 18);
+    }
+
+    function drawD3() {
+      const order = Math.round(num("#d3Order"));
+      const input = $("#d3Input").value;
+      const wn = num("#d3Wn");
+      const amp = num("#d3Amp");
+      setText("#d3OrderOut", order);
+      setText("#d3WnOut", wn.toFixed(1));
+      setText("#d3AmpOut", amp.toFixed(1));
+      const data = simulateLoop({ order, wn, type: input, amp, duration: 4.5, dt: 0.002 });
+      const last = data[data.length - 1];
+      const theory = theoreticalError(order, input, amp, wn);
+      setText("#d3Steady", last.err.toFixed(3));
+      setText("#d3Theory", theory);
+      const { ctx, width, height } = setupCanvas($("#d3Canvas"));
+      clear(ctx, width, height);
+      const pad = { l: 54, r: 22, t: 24, b: 44 };
+      drawFrame(ctx, pad, width, height, "t / s", "相位 / rad");
+      plotSeries(ctx, [
+        { data: data.map((d) => ({ x: d.x, y: d.input })), color: COLORS.blue },
+        { data: data.map((d) => ({ x: d.x, y: d.local })), color: COLORS.teal },
+        { data: data.map((d) => ({ x: d.x, y: d.err })), color: COLORS.amber }
+      ], pad, width, height, {
+        legend: [
+          { label: "θi", color: COLORS.blue },
+          { label: "θl", color: COLORS.teal },
+          { label: "θ^", color: COLORS.amber }
+        ]
+      });
+    }
+
+    function drawD4() {
+      const k = num("#d4K");
+      const dw = num("#d4Dw");
+      const alpha = num("#d4Alpha");
+      setText("#d4KOut", k.toFixed(1));
+      setText("#d4DwOut", dw.toFixed(1));
+      setText("#d4AlphaOut", alpha.toFixed(1));
+      setText("#d4FreqErr", (dw / k).toFixed(2));
+      setText("#d4Bn", (k / 4).toFixed(2));
+      const { ctx, width, height } = setupCanvas($("#d4Canvas"));
+      clear(ctx, width, height);
+      const pad = { l: 58, r: 22, t: 24, b: 48 };
+      drawFrame(ctx, pad, width, height, "t / s", "误差 / rad");
+      const freq = [];
+      const ramp = [];
+      let localF = 0;
+      let localR = 0;
+      const dt = 0.003;
+      for (let t = 0; t <= 5; t += dt) {
+        const inputF = dw * t;
+        const errF = inputF - localF;
+        localF += k * errF * dt;
+        const inputR = 0.5 * alpha * t * t;
+        const errR = inputR - localR;
+        localR += k * errR * dt;
+        if (Math.round(t / dt) % 5 === 0) {
+          freq.push({ x: t, y: errF });
+          ramp.push({ x: t, y: errR });
+        }
+      }
+      plotSeries(ctx, [
+        { data: freq, color: COLORS.teal },
+        { data: ramp, color: COLORS.red }
+      ], pad, width, height, {
+        legend: [
+          { label: "频率阶跃误差", color: COLORS.teal },
+          { label: "频率斜升误差", color: COLORS.red }
+        ]
+      });
+      ctx.strokeStyle = COLORS.amber;
+      ctx.setLineDash([6, 5]);
+      const err = dw / k;
+      const allY = [...freq, ...ramp].map((p) => p.y);
+      const minY = Math.min(...allY, 0);
+      const maxY = Math.max(...allY, err, 1);
+      const y = pad.t + (1 - (err - minY) / (maxY - minY)) * (height - pad.t - pad.b);
+      ctx.beginPath();
+      ctx.moveTo(pad.l, y);
+      ctx.lineTo(width - pad.r, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function drawD5() {
+      const wn = num("#d5Wn");
+      const zeta = num("#d5Zeta");
+      const alpha = num("#d5Alpha");
+      const bn = bandwidth(2, wn, zeta);
+      const rampErr = alpha / (wn * wn);
+      setText("#d5WnOut", wn.toFixed(1));
+      setText("#d5ZetaOut", zeta.toFixed(3));
+      setText("#d5AlphaOut", alpha.toFixed(1));
+      setText("#d5Bn", bn.toFixed(2));
+      setText("#d5RampErr", rampErr.toFixed(3));
+      const a2 = 2 * zeta;
+      const stepData = simulateLoop({ order: 2, wn, zeta, type: "phase", amp: 1, duration: 4, dt: 0.0015 });
+      const rampData = simulateLoop({ order: 2, wn, zeta, type: "ramp", amp: alpha, duration: 4, dt: 0.002 });
+      const cA = setupCanvas($("#d5CanvasA"));
+      clear(cA.ctx, cA.width, cA.height);
+      const padA = { l: 48, r: 18, t: 24, b: 42 };
+      drawFrame(cA.ctx, padA, cA.width, cA.height, "t / s", "阶跃响应");
+      plotSeries(cA.ctx, [
+        { data: stepData.map((d) => ({ x: d.x, y: d.input })), color: COLORS.blue },
+        { data: stepData.map((d) => ({ x: d.x, y: d.local })), color: COLORS.teal }
+      ], padA, cA.width, cA.height, {
+        minY: -0.1,
+        maxY: 1.5,
+        legend: [
+          { label: "θi", color: COLORS.blue },
+          { label: "θl", color: COLORS.teal }
+        ]
+      });
+      cA.ctx.fillStyle = COLORS.soft;
+      cA.ctx.font = "12px sans-serif";
+      cA.ctx.fillText(`a2=2ζ=${a2.toFixed(3)}`, padA.l + 6, cA.height - 16);
+
+      const cB = setupCanvas($("#d5CanvasB"));
+      clear(cB.ctx, cB.width, cB.height);
+      const padB = { l: 48, r: 18, t: 24, b: 42 };
+      drawFrame(cB.ctx, padB, cB.width, cB.height, "t / s", "斜升误差");
+      plotSeries(cB.ctx, [
+        { data: rampData.map((d) => ({ x: d.x, y: d.err })), color: COLORS.amber }
+      ], padB, cB.width, cB.height, {
+        legend: [{ label: "θ^", color: COLORS.amber }]
+      });
+      cB.ctx.fillStyle = COLORS.soft;
+      cB.ctx.font = "12px sans-serif";
+      cB.ctx.fillText(`理论稳态 α/ωn²=${rampErr.toFixed(3)}`, padB.l + 6, cB.height - 16);
+    }
+
+    function drawD6() {
+      const wn = num("#d6Wn");
+      const a3 = num("#d6A3");
+      const b3 = num("#d6B3");
+      const alpha = num("#d6Alpha");
+      const stable = a3 > 0 && b3 > 0 && a3 * b3 > 1;
+      const bn = bandwidth(3, wn, 0.707, a3, b3);
+      setText("#d6WnOut", wn.toFixed(1));
+      setText("#d6A3Out", a3.toFixed(2));
+      setText("#d6B3Out", b3.toFixed(2));
+      setText("#d6AlphaOut", alpha.toFixed(1));
+      setText("#d6Bn", Number.isFinite(bn) && stable ? bn.toFixed(2) : "无效");
+      setText("#d6Stable", stable ? "稳定" : "不稳定");
+      $("#d6Stable").className = stable ? "status-ok" : "status-warn";
+      const { ctx, width, height } = setupCanvas($("#d6Canvas"));
+      clear(ctx, width, height);
+      const pad = { l: 56, r: 24, t: 24, b: 48 };
+      drawFrame(ctx, pad, width, height, "t / s", "相位 / rad");
+      const data = stable
+        ? simulateLoop({ order: 3, wn, a3, b3, type: "ramp", amp: alpha, duration: 3.8, dt: 0.0015 })
+        : simulateLoop({ order: 3, wn, a3, b3, type: "ramp", amp: alpha, duration: 1.8, dt: 0.0015 });
+      plotSeries(ctx, [
+        { data: data.map((d) => ({ x: d.x, y: d.input })), color: COLORS.blue },
+        { data: data.map((d) => ({ x: d.x, y: d.local })), color: stable ? COLORS.teal : COLORS.red },
+        { data: data.map((d) => ({ x: d.x, y: d.err })), color: COLORS.amber }
+      ], pad, width, height, {
+        legend: [
+          { label: "θi", color: COLORS.blue },
+          { label: "θl", color: stable ? COLORS.teal : COLORS.red },
+          { label: "θ^", color: COLORS.amber }
+        ]
+      });
+      ctx.fillStyle = COLORS.soft;
+      ctx.font = "12px sans-serif";
+      ctx.fillText(`稳定条件 a3·b3>1，当前 ${(a3 * b3).toFixed(2)} ${stable ? ">" : "<="} 1`, pad.l + 8, height - 18);
+    }
+
+    function drawD7() {
+      const N = Math.round(num("#d7N"));
+      const wn = num("#d7Wn");
+      const stress = num("#d7Stress");
+      const err = stress / Math.pow(wn, N);
+      const coeff = N === 1 ? 0.25 : N === 2 ? 0.53 : N === 3 ? 0.7845 : 0.7845 + 0.22 * (N - 3);
+      const bn = coeff * wn;
+      setText("#d7NOut", N);
+      setText("#d7WnOut", wn.toFixed(1));
+      setText("#d7StressOut", stress.toFixed(1));
+      setText("#d7Err", err.toExponential(2));
+      setText("#d7Bn", bn.toFixed(2));
+      const { ctx, width, height } = setupCanvas($("#d7Canvas"));
+      clear(ctx, width, height);
+      const pad = { l: 58, r: 24, t: 24, b: 48 };
+      drawFrame(ctx, pad, width, height, "ωn", "归一化值");
+      const errData = [];
+      const bnData = [];
+      for (let x = 1; x <= 30; x += 0.1) {
+        errData.push({ x, y: stress / Math.pow(x, N) });
+        bnData.push({ x, y: coeff * x / 10 });
+      }
+      const maxErr = Math.max(...errData.map((p) => p.y), bn / 10, 1);
+      plotSeries(ctx, [
+        { data: errData, color: COLORS.red, width: 2.6 },
+        { data: bnData, color: COLORS.teal, width: 2.6 }
+      ], pad, width, height, {
+        minX: 1,
+        maxX: 30,
+        minY: 0,
+        maxY: Math.min(maxErr, 12),
+        legend: [
+          { label: "动态误差 stress/ωn^N", color: COLORS.red },
+          { label: "带宽趋势 Bn/10", color: COLORS.teal }
+        ]
+      });
+      const w = width - pad.l - pad.r;
+      const xPos = pad.l + ((wn - 1) / 29) * w;
+      ctx.strokeStyle = COLORS.amber;
+      ctx.setLineDash([6, 5]);
+      ctx.beginPath();
+      ctx.moveTo(xPos, pad.t);
+      ctx.lineTo(xPos, height - pad.b);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function updateAll() {
+      drawHero();
+      drawD1();
+      drawD2();
+      drawD3();
+      drawD4();
+      drawD5();
+      drawD6();
+      drawD7();
+    }
+
+    function initControls() {
+      const ids = [
+        "#heroOrder", "#heroWn", "#heroAccel",
+        "#d1Gain", "#d1Freq", "#d1Step",
+        "#d2Order", "#d2Wn", "#d2Zeta", "#d2A3", "#d2B3",
+        "#d3Order", "#d3Input", "#d3Wn", "#d3Amp",
+        "#d4K", "#d4Dw", "#d4Alpha",
+        "#d5Wn", "#d5Zeta", "#d5Alpha",
+        "#d6Wn", "#d6A3", "#d6B3", "#d6Alpha",
+        "#d7N", "#d7Wn", "#d7Stress"
+      ];
+      ids.forEach((id) => {
+        const el = $(id);
+        if (!el) return;
+        el.addEventListener("input", updateAll);
+        el.addEventListener("change", updateAll);
+      });
+      window.addEventListener("resize", () => updateAll());
+    }
+
+    function initScroll() {
+      const links = $$("#toc a");
+      const sections = links.map((link) => $(link.getAttribute("href"))).filter(Boolean);
+      const onScroll = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = max > 0 ? clamp(Math.round(window.scrollY / max * 100), 0, 100) : 0;
+        $("#progressBar").style.width = `${progress}%`;
+        $("#progressText").textContent = `${progress}%`;
+        let active = sections[0]?.id;
+        sections.forEach((section) => {
+          if (section.getBoundingClientRect().top <= 130) active = section.id;
+        });
+        links.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === `#${active}`));
+      };
+      document.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initControls();
+      initScroll();
+      updateAll();
+      if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
+    });
+  </script>
+</body>
+</html>
