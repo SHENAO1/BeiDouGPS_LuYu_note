@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Install Python dependencies (pypdf)",
+      "type": "shell",
+      "command": "pip install pypdf",
+      "inAgents": true,
+      "runOptions": { "runOn": "worktreeCreated" },
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Split PDF into chapters",
+      "type": "shell",
+      "command": "python chapters/split_chapters.py",
+      "inAgents": true,
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Open site in browser",
+      "type": "shell",
+      "command": "Start-Process '${workspaceFolder}\\site\\chapter-4-1-6\\index.html'",
+      "inAgents": true,
+      "presentation": { "reveal": "silent", "panel": "shared" }
+    }
+  ]
+}

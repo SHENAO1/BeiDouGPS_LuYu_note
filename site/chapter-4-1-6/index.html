@@ -1,0 +1,2382 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4.1.6 基于数据分块和频率补偿的信号捕获</title>
+  <meta name="description" content="GNSS 信号捕获学习页：以课本 4.1.6 为主线，将语雀笔记解释插入对应知识点，并配套可视化交互演示。">
+  <style>
+    :root {
+      --ink: #092238;
+      --ink-soft: #27465d;
+      --muted: #64798a;
+      --paper: #fbf6ea;
+      --paper-strong: #fffaf0;
+      --night: #03192c;
+      --night-2: #062842;
+      --cyan: #1ec8da;
+      --cyan-deep: #087f93;
+      --amber: #e9a72e;
+      --orange: #d8672d;
+      --line: rgba(9, 34, 56, .14);
+      --line-dark: rgba(255, 255, 255, .14);
+      --shadow: 0 24px 70px rgba(8, 27, 42, .18);
+      --radius-lg: 28px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+      --content: minmax(0, 1fr);
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 78% 7%, rgba(30, 200, 218, .18), transparent 26rem),
+        radial-gradient(circle at 24% 17%, rgba(233, 167, 46, .16), transparent 22rem),
+        linear-gradient(135deg, #fffaf0 0%, #f8efe0 42%, #eef7f8 100%);
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif;
+      line-height: 1.75;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(9, 34, 56, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(9, 34, 56, .035) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .9), rgba(0, 0, 0, .15));
+      z-index: -1;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 292px var(--content);
+      min-height: 100vh;
+    }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 30px 24px;
+      color: #dff7ff;
+      background:
+        radial-gradient(circle at 18% 10%, rgba(30, 200, 218, .24), transparent 18rem),
+        linear-gradient(180deg, var(--night) 0%, #041221 100%);
+      overflow-y: auto;
+      border-right: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .brand {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(30, 200, 218, .55);
+      border-radius: 15px;
+      background: rgba(30, 200, 218, .11);
+      box-shadow: 0 0 35px rgba(30, 200, 218, .18);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-weight: 800;
+      letter-spacing: -.04em;
+    }
+
+    .brand h2 {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.38;
+      letter-spacing: .03em;
+    }
+
+    .brand small {
+      color: #89aabb;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .progress-shell {
+      margin: 22px 0 30px;
+      padding: 16px;
+      border: 1px solid var(--line-dark);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .045);
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      color: #b5ceda;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+    }
+
+    .progress-track {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .12);
+    }
+
+    .progress-bar {
+      width: 8%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--cyan), var(--amber));
+      transition: width .2s ease;
+    }
+
+    .toc {
+      display: grid;
+      gap: 4px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .toc a {
+      display: block;
+      padding: 9px 12px;
+      border-radius: 12px;
+      color: #b8d0dc;
+      font-size: 13px;
+      line-height: 1.35;
+      transition: background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .toc a:hover,
+    .toc a.active {
+      color: #fff;
+      background: rgba(30, 200, 218, .15);
+      transform: translateX(2px);
+    }
+
+    .rail-card {
+      margin-top: 28px;
+      padding: 16px;
+      border: 1px solid rgba(30, 200, 218, .24);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .045);
+      color: #c8dde6;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+    }
+
+    .rail-card strong {
+      display: block;
+      margin-bottom: 10px;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    .rail-card span {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      margin: 9px 0;
+    }
+
+    .rail-card span::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      margin-top: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 12px rgba(30, 200, 218, .8);
+      flex: 0 0 auto;
+    }
+
+    main {
+      padding: 34px clamp(20px, 4vw, 54px) 80px;
+      max-width: 1480px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(460px, .95fr);
+      gap: 28px;
+      align-items: stretch;
+      min-height: 620px;
+    }
+
+    .hero-copy,
+    .sim-panel,
+    .section,
+    .figure-card,
+    .note-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 250, 240, .72);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-copy {
+      padding: clamp(28px, 5vw, 56px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-copy::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -80px;
+      bottom: -110px;
+      border: 1px solid rgba(30, 200, 218, .28);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 30px rgba(30, 200, 218, .035);
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.18;
+      letter-spacing: -.03em;
+    }
+
+    h1 {
+      max-width: 820px;
+      font-size: clamp(42px, 4.8vw, 60px);
+      font-weight: 900;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    h1 span {
+      display: block;
+    }
+
+    .hero-copy p {
+      max-width: 720px;
+      margin: 26px 0 0;
+      color: var(--ink-soft);
+      font-size: clamp(17px, 1.45vw, 22px);
+      overflow-wrap: anywhere;
+    }
+
+    .hero-copy p span {
+      display: inline;
+    }
+
+    .thesis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 38px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .thesis article {
+      padding: 18px;
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .54);
+    }
+
+    .thesis b {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--cyan-deep);
+      font-size: 15px;
+    }
+
+    .thesis span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .sim-panel {
+      padding: 22px;
+      color: #e9fbff;
+      background:
+        radial-gradient(circle at 18% 16%, rgba(30, 200, 218, .2), transparent 18rem),
+        linear-gradient(145deg, #021326 0%, #062944 100%);
+    }
+
+    .sim-panel h2 {
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 19px;
+      letter-spacing: .02em;
+    }
+
+    .flow-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin: 22px 0;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .flow-tabs button {
+      min-height: 76px;
+      padding: 12px 10px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 16px;
+      color: #b5ceda;
+      background: rgba(255, 255, 255, .05);
+      cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
+    }
+
+    .flow-tabs button:hover,
+    .flow-tabs button.active {
+      transform: translateY(-2px);
+      color: #fff;
+      border-color: rgba(30, 200, 218, .7);
+      background: rgba(30, 200, 218, .16);
+    }
+
+    .flow-tabs b {
+      display: block;
+      font-size: 20px;
+      line-height: 1;
+      margin-bottom: 8px;
+      color: var(--cyan);
+    }
+
+    .flow-tabs span {
+      display: block;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.12fr .88fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .scope,
+    .control-box,
+    .mini-readout {
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .055);
+    }
+
+    .scope {
+      padding: 14px;
+      min-height: 240px;
+    }
+
+    .scope canvas {
+      width: 100%;
+      height: 190px;
+      display: block;
+    }
+
+    .scope-caption {
+      display: flex;
+      justify-content: space-between;
+      color: #9fc4d4;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+    }
+
+    .control-box {
+      padding: 16px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .control-row {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .control-row label {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      color: #c4dce7;
+      font-size: 13px;
+    }
+
+    input[type="range"] {
+      accent-color: var(--cyan);
+      width: 100%;
+    }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .mini-readout {
+      padding: 14px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .mini-readout span {
+      display: block;
+      color: #8eb5c5;
+      font-size: 12px;
+    }
+
+    .mini-readout b {
+      color: #fff;
+      font-size: 20px;
+    }
+
+    .section {
+      margin-top: 28px;
+      padding: clamp(26px, 4vw, 42px);
+    }
+
+    .section-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 26px;
+    }
+
+    .section h2 {
+      font-size: clamp(28px, 3vw, 48px);
+    }
+
+    .section-kicker {
+      max-width: 760px;
+      color: var(--ink-soft);
+      font-size: 17px;
+    }
+
+    .formula-chip {
+      padding: 12px 16px;
+      border: 1px solid rgba(30, 200, 218, .28);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .58);
+      color: var(--cyan-deep);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .explain-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .explain-grid article,
+    .lab-card,
+    .formula-card,
+    .takeaway {
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .52);
+    }
+
+    .explain-grid article {
+      padding: 20px;
+    }
+
+    .explain-grid h3,
+    .lab-card h3,
+    .formula-card h3,
+    .takeaway h3 {
+      margin-bottom: 10px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .explain-grid p,
+    .lab-card p,
+    .formula-card p,
+    .takeaway p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 15px;
+    }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(320px, .82fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .lab-card {
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .matrix-wrap {
+      margin-top: 18px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .matrix {
+      display: grid;
+      gap: 8px;
+      min-width: 620px;
+    }
+
+    .matrix-row {
+      display: grid;
+      grid-template-columns: 72px repeat(16, 1fr);
+      gap: 6px;
+      align-items: center;
+    }
+
+    .row-label {
+      color: var(--muted);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+      text-align: right;
+      padding-right: 4px;
+    }
+
+    .cell {
+      min-height: 32px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(9, 34, 56, .14);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fffaf1, #eef9fb);
+      color: var(--ink-soft);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 11px;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .cell.same-phase {
+      border-color: rgba(30, 200, 218, .85);
+      background: linear-gradient(180deg, rgba(30, 200, 218, .26), rgba(30, 200, 218, .08));
+      color: var(--ink);
+      transform: translateY(-1px);
+    }
+
+    .cell.peak-cell {
+      border-color: rgba(233, 167, 46, .9);
+      background: linear-gradient(180deg, rgba(233, 167, 46, .32), rgba(233, 167, 46, .08));
+    }
+
+    .svg-demo {
+      width: 100%;
+      min-height: 260px;
+      border: 1px solid rgba(9, 34, 56, .1);
+      border-radius: 18px;
+      background: #fffdf7;
+    }
+
+    .canvas-panel {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .canvas-card {
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 18px;
+      background: #fffdf7;
+      overflow: hidden;
+    }
+
+    .canvas-card header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(9, 34, 56, .1);
+      color: var(--muted);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+    }
+
+    .canvas-card canvas {
+      width: 100%;
+      height: 260px;
+      display: block;
+    }
+
+    .formula-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .formula-card {
+      padding: 20px;
+    }
+
+    .equation {
+      margin: 14px 0;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(3, 25, 44, .045);
+      overflow-x: auto;
+      color: #061e34;
+      font-size: 17px;
+    }
+
+    .takeaway {
+      margin-top: 18px;
+      padding: 20px;
+      border-color: rgba(30, 200, 218, .26);
+      background:
+        linear-gradient(135deg, rgba(30, 200, 218, .12), transparent 34%),
+        rgba(255, 255, 255, .58);
+    }
+
+    .lesson-body {
+      display: grid;
+      gap: 18px;
+      max-width: 980px;
+    }
+
+    .lesson-body h3,
+    .lesson-body h4 {
+      margin: 4px 0 0;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+      color: var(--ink);
+    }
+
+    .lesson-body h3 {
+      font-size: 22px;
+    }
+
+    .lesson-body h4 {
+      font-size: 18px;
+    }
+
+    .lesson-body p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 17px;
+    }
+
+    .lesson-body ul {
+      margin: 0;
+      padding-left: 1.2em;
+      color: var(--ink-soft);
+      font-size: 16px;
+    }
+
+    .lesson-body li {
+      margin: 8px 0;
+    }
+
+    .source-flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0 4px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .source-flow span {
+      padding: 14px;
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .58);
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .source-flow b {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--cyan-deep);
+      font-size: 15px;
+    }
+
+    .note-insert {
+      position: relative;
+      padding: 18px 20px 18px 22px;
+      border: 1px solid rgba(233, 167, 46, .32);
+      border-left: 5px solid var(--amber);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(233, 167, 46, .13), rgba(255, 255, 255, .6));
+    }
+
+    .note-insert strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #8a5409;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+    }
+
+    .note-insert p {
+      color: #3e5160;
+      font-size: 15px;
+    }
+
+    .beginner-box {
+      padding: 18px 20px;
+      border: 1px solid rgba(30, 200, 218, .3);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(30, 200, 218, .12), rgba(255, 255, 255, .58));
+    }
+
+    .beginner-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--cyan-deep);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+    }
+
+    .inline-figure {
+      margin: 2px 0;
+      padding: 16px;
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .62);
+    }
+
+    .inline-figure img {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(9, 34, 56, .1);
+      background: #fff;
+      object-fit: contain;
+    }
+
+    .inline-figure figcaption {
+      margin-top: 10px;
+      color: var(--ink-soft);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .derivation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .derivation-card {
+      padding: 18px 20px;
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .58);
+    }
+
+    .derivation-card h3 {
+      margin-bottom: 10px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .derivation-card p {
+      margin: 10px 0 0;
+      color: var(--ink-soft);
+      font-size: 15px;
+    }
+
+    .equation-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .after-demo {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px dashed rgba(9, 34, 56, .18);
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .pipe-step {
+      position: relative;
+      padding: 18px;
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .55);
+    }
+
+    .pipe-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      width: 16px;
+      height: 2px;
+      background: var(--cyan-deep);
+    }
+
+    .pipe-step b {
+      display: block;
+      color: var(--cyan-deep);
+      font-size: 22px;
+    }
+
+    .pipe-step span {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .figure-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .figure-card {
+      padding: 16px;
+      box-shadow: none;
+      background: rgba(255, 255, 255, .58);
+    }
+
+    .figure-card img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: contain;
+      border-radius: 14px;
+      border: 1px solid rgba(9, 34, 56, .1);
+      background: #fff;
+    }
+
+    .figure-card figcaption {
+      margin-top: 12px;
+      color: var(--ink-soft);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .note-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .note-card {
+      padding: 22px;
+      box-shadow: none;
+      background: rgba(255, 255, 255, .62);
+    }
+
+    .note-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .note-actions button,
+    .note-actions a {
+      padding: 10px 14px;
+      border: 1px solid rgba(9, 34, 56, .14);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, .68);
+      cursor: pointer;
+    }
+
+    .note-actions button.active {
+      border-color: rgba(30, 200, 218, .65);
+      background: rgba(30, 200, 218, .14);
+    }
+
+    .rendered-note,
+    .raw-note,
+    .note-object {
+      max-height: 720px;
+      overflow: auto;
+      padding: 20px;
+      border: 1px solid rgba(9, 34, 56, .12);
+      border-radius: 18px;
+      background: #fffdf7;
+    }
+
+    .rendered-note h1,
+    .rendered-note h2,
+    .rendered-note h3,
+    .rendered-note h4 {
+      margin: 1.4em 0 .55em;
+      letter-spacing: 0;
+    }
+
+    .rendered-note h1 {
+      font-size: 30px;
+    }
+
+    .rendered-note h2 {
+      font-size: 25px;
+    }
+
+    .rendered-note h3 {
+      font-size: 21px;
+    }
+
+    .rendered-note h4 {
+      font-size: 18px;
+    }
+
+    .rendered-note p,
+    .rendered-note li {
+      color: var(--ink-soft);
+    }
+
+    .rendered-note blockquote {
+      margin: 16px 0;
+      padding: 12px 16px;
+      border-left: 4px solid var(--cyan);
+      background: rgba(30, 200, 218, .08);
+      color: var(--ink-soft);
+    }
+
+    .rendered-note code,
+    .raw-note {
+      font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    .raw-note {
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .note-object {
+      width: 100%;
+      min-height: 620px;
+      background: #fff;
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    .footer {
+      margin: 38px 0 0;
+      color: var(--muted);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 1180px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        position: static;
+        height: auto;
+        padding: 18px;
+      }
+
+      .toc {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .rail-card,
+      .progress-shell {
+        display: none;
+      }
+
+      .hero,
+      .lab-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sim-panel {
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 820px) {
+      main {
+        padding: 18px 14px 54px;
+      }
+
+      .toc {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero-copy,
+      .sim-panel,
+      .section {
+        border-radius: 22px;
+      }
+
+      .hero-copy {
+        padding: 30px 28px;
+        overflow: hidden;
+        min-width: 0;
+      }
+
+      h1 {
+        font-size: clamp(30px, 8.4vw, 34px);
+        line-height: 1.14;
+        letter-spacing: -.045em;
+        line-break: anywhere;
+      }
+
+      .hero-copy p {
+        font-size: 16px;
+        line-height: 1.8;
+        word-break: break-all;
+        line-break: anywhere;
+      }
+
+      .hero-copy p span {
+        display: block;
+      }
+
+      .thesis article,
+      .thesis span,
+      .section-kicker,
+      .lesson-body p,
+      .lesson-body li,
+      .note-insert p,
+      .beginner-box p,
+      .explain-grid p,
+      .lab-card p,
+      .formula-card p,
+      .takeaway p {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        word-break: break-all;
+        line-break: anywhere;
+      }
+
+      .source-flow {
+        grid-template-columns: 1fr;
+      }
+
+      .derivation-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .thesis,
+      .hero-grid,
+      .metric-strip,
+      .explain-grid,
+      .canvas-panel,
+      .pipeline,
+      .figure-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-tabs {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        grid-template-columns: 1fr;
+      }
+
+      .formula-chip {
+        white-space: normal;
+      }
+
+      .pipe-step:not(:last-child)::after {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .section,
+      .hero-copy,
+      .sim-panel {
+        animation: rise .65s ease both;
+      }
+
+      .section:nth-of-type(2n) {
+        animation-delay: .05s;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    }
+  </style>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      },
+      svg: { fontCache: "global" }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="rail" aria-label="页面导航">
+      <div class="brand">
+        <div class="brand-mark">GN</div>
+        <div>
+          <small>GNSS software receiver note</small>
+          <h2>信号捕获学习页</h2>
+        </div>
+      </div>
+
+      <div class="progress-shell" aria-hidden="true">
+        <div class="progress-label"><span>阅读进度</span><span id="progressText">0%</span></div>
+        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+
+      <nav class="toc" id="toc">
+        <a href="#overview">学习路线</a>
+        <a href="#why">课本问题</a>
+        <a href="#partition">建模与分块</a>
+        <a href="#gain">频率补偿与增益</a>
+        <a href="#vertical-fft">竖块 FFT</a>
+        <a href="#horizontal-capture">横块捕获</a>
+        <a href="#cost">复杂度与总结</a>
+        <a href="#iq">I/Q 前置理解</a>
+        <a href="#figures">教材图谱</a>
+      </nav>
+
+      <div class="rail-card">
+        <strong>本节抓手</strong>
+        <span>先按课本理解：为什么直接长时间累加会失败。</span>
+        <span>再看笔记补充：I/Q、相量、狄利克雷核分别在解释什么。</span>
+        <span>每个知识点后面接一个图或交互，不把笔记单独丢到附录。</span>
+        <span>最终输出仍是频率和码相位的二维搜索峰。</span>
+      </div>
+    </aside>
+
+    <main>
+      <section class="hero" id="overview">
+        <div class="hero-copy">
+          <h1><span>4.1.6 基于</span><span>数据分块和</span><span>频率补偿的信号捕获</span></h1>
+          <p><span>这页按课本 4.1.6 的推导顺序重写：</span><span>先讲信号模型和数据分块，</span><span>再讲增益函数、频率补偿、</span><span>竖块 FFT 与横块捕获。</span><span>语雀笔记中的直觉解释会插入到对应知识点下面，</span><span>每讲完一个难点再配图或交互帮助理解。</span></p>
+
+          <div class="thesis" aria-label="核心结论">
+            <article>
+              <b>分块</b>
+              <span>对应课本图 4.17、4.20：把 $LN$ 点改看成 $L\times N$ 矩阵。</span>
+            </article>
+            <article>
+              <b>补偿</b>
+              <span>对应式 (4.66)-(4.82)：用块间相位关系解释相干增益。</span>
+            </article>
+            <article>
+              <b>捕获</b>
+              <span>对应图 4.22、式 (4.83)-(4.85)：二维峰给出频率与码相位。</span>
+            </article>
+          </div>
+        </div>
+
+        <div class="sim-panel" aria-label="交互式总览">
+          <h2>交互式演示：分块、频率补偿与捕获峰</h2>
+          <div class="flow-tabs" id="flowTabs">
+            <button class="active" data-step="0"><b>1</b><span>数据分块</span></button>
+            <button data-step="1"><b>2</b><span>同相叠加</span></button>
+            <button data-step="2"><b>3</b><span>竖向 FFT</span></button>
+            <button data-step="3"><b>4</b><span>横向相关</span></button>
+            <button data-step="4"><b>5</b><span>峰值判决</span></button>
+          </div>
+
+          <div class="hero-grid">
+            <div class="scope">
+              <canvas id="heroCanvas" width="720" height="360" aria-label="捕获过程动态图"></canvas>
+              <div class="scope-caption">
+                <span id="scopeCaption">同一码相位跨毫秒观察相位旋转</span>
+                <span>横轴：码相位，纵轴：频率索引</span>
+              </div>
+            </div>
+            <div class="control-box">
+              <div class="control-row">
+                <label for="lRange"><span>分块数 $L$</span><strong id="lValue">8</strong></label>
+                <input id="lRange" type="range" min="2" max="16" step="1" value="8">
+              </div>
+              <div class="control-row">
+                <label for="freqRange"><span>残余频偏 $\Delta f$</span><strong id="freqValue">310 Hz</strong></label>
+                <input id="freqRange" type="range" min="-500" max="500" step="10" value="310">
+              </div>
+              <div class="control-row">
+                <label for="phaseRange"><span>真实码相位</span><strong id="phaseValue">7</strong></label>
+                <input id="phaseRange" type="range" min="0" max="15" step="1" value="7">
+              </div>
+            </div>
+          </div>
+
+          <div class="metric-strip">
+            <div class="mini-readout"><span>细频率分辨率</span><b id="binMetric">125 Hz</b></div>
+            <div class="mini-readout"><span>相干增益</span><b id="snrMetric">9.03 dB</b></div>
+            <div class="mini-readout"><span>匹配频率索引</span><b id="binIndexMetric">m=2</b></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="why">
+        <div class="section-header">
+          <div>
+            <h2>课本起点：为什么要提出“分块 + 频率补偿”</h2>
+            <p class="section-kicker">这一节不是凭空发明一种新 FFT 技巧，而是在回答一个很具体的问题：弱信号下想把相干时间拉长，为什么直接把 $L$ ms 数据做长时间处理不够稳、不够快？</p>
+          </div>
+          <div class="formula-chip">起点：$L$ ms，$N$ 点/ms</div>
+        </div>
+
+        <div class="lesson-body">
+          <p>课本在 4.1.6 前先提醒了一个限制：参与 FFT 处理的数据总长度不能超过数据比特不跳变所允许的最大长度。对 GPS C/A 来说通常可小于 20 ms；但对北斗某些信号，受 NH 码或数据结构影响，可直接相干处理的长度更短。这说明“单纯把数据越攒越长”并不是通用答案。</p>
+          <p>于是 4.1.6 转向一个更精细的思路：不把 $L$ ms 数据当作一个粗暴的长序列，而是利用伪码 1 ms 周期重复的结构，把时间维拆开处理。这样做的目标有两个：</p>
+          <ul>
+            <li>在灵敏度上，希望跨多个 1 ms 数据块做相干叠加，得到接近长时间积分的 SNR 收益。</li>
+            <li>在运算量上，希望避免对长度为 $LN$ 的长序列在大量频点上反复做大 FFT。</li>
+          </ul>
+          <p>这就是“分块”和“频率补偿”同时出现的原因。分块负责把结构暴露出来，频率补偿负责让这些块真的能叠加。</p>
+
+          <div class="source-flow">
+            <span><b>图 4.17</b>先把 $L$ ms 采样流切成 $L$ 个 1 ms 数据块。</span>
+            <span><b>式 (4.65)</b>给出单颗卫星的离散复信号模型。</span>
+            <span><b>式 (4.66)</b>尝试把不同块中相同位置的样点直接叠加。</span>
+            <span><b>式 (4.67)-(4.68)</b>把叠加效果归结为块间增益函数 $G(L,f_k)$。</span>
+          </div>
+
+          <figure class="inline-figure">
+            <img src="assets/figures/fig-4-17-data-blocks.png" alt="图 4.17 L 毫秒的采样数据被分块">
+            <figcaption>图 4.17 对应课本的第一个动作：先切块，不先 FFT。这样做是为了把“同一码相位在不同毫秒中的重复观测”提取出来。</figcaption>
+          </figure>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：先建立“箭头”直觉</strong>
+            <p>接收到的 IQ 信号可以看成复平面上一根旋转箭头。相关累加希望这些箭头朝同一个方向叠加；如果残余频率存在，箭头每过 1 ms 都会转一个角度，直接相加就可能抵消。</p>
+          </div>
+
+          <div class="beginner-box">
+            <strong>初学者检查点</strong>
+            <p>本节的核心问题不是“先算 FFT 还是先算相关”，而是“同一码相位跨多个毫秒能不能稳定同相叠加”。只有这个问题被解决，长数据才不会一边增加积分长度，一边把相关峰自己抵消掉。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="partition">
+        <div class="section-header">
+          <div>
+            <h2>第一步：信号模型与“同位置样点”重排</h2>
+            <p class="section-kicker">课本先从式 (4.65) 出发建立复信号模型，再观察这个模型里哪些量在跨块同一位置上保持不变，哪些量会变。这一步决定了后续为什么能沿“竖向”看相位。</p>
+          </div>
+          <div class="formula-chip">$T_b=NT_s=1\text{ ms}$</div>
+        </div>
+
+        <div class="lab-grid">
+          <div class="lab-card">
+            <h3>交互矩阵：同一列为什么可以拿出来看</h3>
+            <p>青色列表示同一码相位在不同毫秒中的样点。每块长度正好是 1 ms，所以这些样点的伪码位置一致；纵向剩下最值得观察的变化，就是载波相位随块序号旋转。</p>
+            <div class="matrix-wrap">
+              <div class="matrix" id="partitionMatrix" aria-label="数据分块矩阵"></div>
+            </div>
+          </div>
+          <div class="formula-stack">
+            <div class="formula-card">
+              <h3>课本信号模型</h3>
+              <div class="equation">$$s_k(n)=D_k(nT_s)C_k(nT_s)e^{j2\pi f_k nT_s}+v_k(nT_s)$$</div>
+              <p>这里的 $s_k(n)$ 是进入数字捕获算法前的离散中频/基带等效采样信号。$D_k$ 是导航数据位，$C_k$ 是伪随机码，$f_k$ 是受到多普勒影响后的载波频率，$v_k$ 是高斯白噪声。</p>
+            </div>
+            <div class="formula-card">
+              <h3>同一列的样点</h3>
+              <div class="equation">$$s(i),\ s(N+i),\ \dots,\ s((L-1)N+i)$$</div>
+              <p>固定 $i$ 就固定了 1 ms 内的采样位置，也就是固定了码相位；块序号每增加 1，时间增加 $NT_s=1$ ms，所以这串数据天然是一条“慢时间序列”。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="after-demo lesson-body">
+          <h3>为什么同一列只有载波项在变</h3>
+          <p>当 $L$ 小于数据位跳变周期时，可以把 $D_k$ 看作常数；又因为伪码周期是 1 ms，所以对于同一个列索引 $i$，有：</p>
+          <div class="equation">$$C_k(iT_s)=C_k\bigl[(i+N)T_s\bigr]=\cdots=C_k\bigl[(i+(L-1)N)T_s\bigr]$$</div>
+          <p>因此跨块同一位置样点的区别主要只剩下载波项 $e^{j2\pi f_k nT_s}$。这正是课本敢把不同块中相同位置样点拿出来相加的基础。</p>
+
+          <div class="derivation-grid">
+            <div class="derivation-card">
+              <h3>式 (4.66)：直接叠加的写法</h3>
+              <div class="equation">$$\sum_{i=0}^{L-1}s_k(n+iN)=\{S_s^{(k)}(n)\}G(L,f_k)+\sum_{i=0}^{L-1}v_k(n+iN)$$</div>
+              <p>课本把信号项和噪声项分开看。信号项乘上块间增益函数 $G(L,f_k)$，噪声项只是各块噪声的求和。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>式 (4.67)：块间增益函数</h3>
+              <div class="equation">$$G(L,f_k)=\sum_{i=0}^{L-1}e^{j2\pi f_k iNT_s}$$</div>
+              <p>这是一个有限长复指数求和。它编码的正是“每过一个 1 ms 数据块，相位到底又多转了多少”。</p>
+            </div>
+          </div>
+
+          <figure class="inline-figure">
+            <img src="assets/figures/fig-4-20-horizontal-vertical-blocks.png" alt="图 4.20 将中频数据采样按横块和竖块重新排列">
+            <figcaption>图 4.20 是本节的结构核心。横块保留 1 ms 内的原始采样顺序，竖块把不同毫秒中相同码相位的位置抽出来，专门观察载波相位如何跨块变化。</figcaption>
+          </figure>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：为什么“相同位置”重要</strong>
+            <p>把 $L$ 个数据块的相同位置样点叠加，是因为每个数据块正好是 1 ms，而伪随机码周期也为 1 ms。这样同一列的数据位和伪码都可视为相同，才能把问题集中到载波相位补偿上。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="gain">
+        <div class="section-header">
+          <div>
+            <h2>第二步：块间增益函数、相位补偿与搜索步进</h2>
+            <p class="section-kicker">课本先用 $G(L,f_k)$ 说明直接叠加为什么不可靠，再引入补偿信号 $p_k(n)$，把“对不齐的相位”转成“可控的相位”。这一节是 4.1.6 的数学核心。</p>
+          </div>
+          <div class="formula-chip">$G(L,f_k)$ 决定累加收益</div>
+        </div>
+
+        <div class="lesson-body">
+          <h3>1. 先看直接相加为什么不稳</h3>
+          <p>对同一列样点相加时，信号部分会被乘上一个块间增益函数：</p>
+          <div class="equation">$$G(L,f_k)=\sum_{i=0}^{L-1}e^{j2\pi f_k iNT_s}$$</div>
+          <div class="equation-note">上式对应课本式 (4.67)，它把“块间相位是否能对齐”压缩成一个增益函数。</div>
+          <p>这是一个公比为 $q=e^{j2\pi f_kNT_s}$ 的等比级数。当 $q\neq 1$ 时，可直接用等比数列求和得到：</p>
+          <div class="equation">$$G(L,f_k)=\frac{1-e^{j2\pi f_kLNT_s}}{1-e^{j2\pi f_kNT_s}}=e^{j\pi f_k(L-1)NT_s}\frac{\sin(\pi L f_kNT_s)}{\sin(\pi f_kNT_s)}$$</div>
+          <div class="equation">$$|G(L,f_k)|=\left|\frac{\sin(\pi L f_kNT_s)}{\sin(\pi f_kNT_s)}\right|$$</div>
+          <div class="equation-note">这里对应课本式 (4.68)。第一项是相位因子，幅度真正由后面的正弦比值决定。</div>
+          <p>如果每相邻两个 1 ms 块之间的相位差是 $2\pi$ 的整数倍，那么所有项同相，$|G|$ 取得最大值 $L$。如果相位差不合适，复平面上的箭头会绕成一圈，累加后反而变小甚至接近 0。</p>
+
+          <div class="derivation-grid">
+            <div class="derivation-card">
+              <h3>最大值条件</h3>
+              <div class="equation">$$e^{j2\pi f_kNT_s}=1\Longleftrightarrow f_kNT_s\in\mathbb{Z}$$</div>
+              <p>由于 $NT_s=1$ ms，上式等价于 $f_k$ 是 1 kHz 的整数倍。此时 $L$ 项全部同相，$G(L,f_k)=L$。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>第一个过零点</h3>
+              <div class="equation">$$\sin(\pi L f_kNT_s)=0\Longrightarrow f_k=\frac{m}{LNT_s}$$</div>
+              <p>当 $NT_s=1$ ms 时，第一个过零点大约在 $\pm 1\text{ kHz}/L$。这说明 $L$ 越大，频率误差容忍度越小。</p>
+            </div>
+          </div>
+
+          <figure class="inline-figure">
+            <img src="assets/figures/fig-4-18-phase-adjust-accumulation.png" alt="图 4.18 通过载波相位调整后的数据块累加使信号强度提高">
+            <figcaption>图 4.18 对应课本的直观解释：不是“数据块本身不能加”，而是“不经相位调整的数据块不能直接加”。相位补偿的目的就是先把起始载波相位对齐。</figcaption>
+          </figure>
+
+          <h3>2. 再看补偿信号如何把问题变成可控</h3>
+          <div class="equation">$$p_k(n)=e^{j2\pi \Delta f_k nT_s},\qquad y_k(n)=s_k(n)p_k(n)$$</div>
+          <div class="equation-note">补偿信号 $p_k(n)$ 与补偿后信号 $y_k(n)$ 对应课本式 (4.69)。</div>
+          <p>补偿后载波频率变为 $f_k'=f_k+\Delta f_k$。课本式 (4.70)-(4.72) 的核心意思是：只要 $\Delta f_k$ 选得合适，让 $f'_k$ 在跨块观察时满足同相条件，就能把块间累加增益恢复到接近 $L$。</p>
+          <div class="derivation-grid">
+            <div class="derivation-card">
+              <h3>式 (4.70)：补偿后的块累加</h3>
+              <div class="equation">$$Y_k(n)=\sum_{i=0}^{L-1}y_k(n+iN)=S\{y_k(n)\}G(L,f_k')+\sum_{i=0}^{L-1}v'_k(n+iN)$$</div>
+              <p>这一步和式 (4.66) 完全平行，只是把原来的 $f_k$ 换成了补偿后的 $f_k'=f_k+\Delta f_k$。因此问题没有变成“如何重新做相关”，而只是变成“如何让新的增益函数 $G(L,f_k')$ 取最大”。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>式 (4.71)-(4.72)：何时得到满增益</h3>
+              <div class="equation">$$e^{j2\pi f_k'NT_s}=1\Longleftrightarrow f_k'T_b=m,\quad T_b=NT_s,\ m\in\mathbb{Z}$$</div>
+              <div class="equation">$$Y_k(n)=L\,S\{y_k(n)\}+\sum_{i=0}^{L-1}v'_k(n+iN)$$</div>
+              <p>只要相邻块之间的相位差恰好是整数圈，$L$ 个信号项就完全同相，而噪声只是随机叠加。这正是课本把补偿信号称为“载波相位调整序列”的原因。</p>
+            </div>
+          </div>
+          <div class="equation">$$\operatorname{mod}(f_k',1\text{ kHz})=0$$</div>
+          <div class="equation-note">这就是课本式 (4.71)。满足该条件时，课本式 (4.72) 表明补偿后块累加的信号强度可增强到 $L$ 倍量级。</div>
+          <p>把它改写成补偿量本身，可以直接得到优化补偿量的通式：</p>
+          <div class="equation">$$\Delta f_k^{(\mathrm{opt})}=\frac{m}{T_b}-f_k,\qquad T_b=NT_s=1\text{ ms}$$</div>
+          <div class="equation-note">这个式子把课本“优化的 $\Delta f_k$”具体化了：它不是凭经验试出来的，而是由“跨块相位差必须是整数圈”直接推出的。</div>
+          <p>这也是为什么优化解并不唯一：只要多补或少补一个整 1 kHz，在每隔 1 ms 的观测点上仍然等效同相。</p>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：为什么优化的 $\Delta f_k$ 会周期出现</strong>
+            <p>跨数据块叠加只关心每隔 $T_b=1$ ms 的相位变化。如果某个补偿量能让相邻块多转角度变成整数个 $2\pi$，那么 $\Delta f_k^{(\mathrm{opt})}+q/T_b$ 也同样最优；在本节里 $1/T_b=1$ kHz，因此优化补偿量会按 1 kHz 周期重复出现。</p>
+          </div>
+
+          <div class="derivation-grid">
+            <div class="derivation-card">
+              <h3>信号为什么增强到 $L$ 倍</h3>
+              <div class="equation">$$\text{幅度}\times L,\qquad \text{功率}\times L^2$$</div>
+              <p>完全同相时，$L$ 个复向量会沿同一方向首尾相接，得到的是长度扩大到 $L$ 倍的一根箭头。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>噪声为什么只涨到 $L$ 倍</h3>
+              <div class="equation">$$v'_k(n+iN)\sim\mathcal{N}(0,\sigma^2)\Longrightarrow \sum_{i=0}^{L-1}v'_k(n+iN)\sim\mathcal{N}(0,L\sigma^2)$$</div>
+              <p>噪声方差线性增长，所以最终相干累加信噪比提高 $L$ 倍，也就是 $10\log_{10}L$ dB。这正对应语雀笔记里“信号幅度线性增、噪声功率线性增”的解释。</p>
+            </div>
+          </div>
+
+          <h3>3. 搜索范围和搜索步进从哪里来</h3>
+          <p>课本给出的结论是：优化 $\Delta f_k$ 的搜索范围可以缩小到 $[0,1\text{ kHz}]$。因为更宽的搜索范围只是这个区间按 1 kHz 周期平移后的重复。</p>
+          <p>搜索步进由 $G(L,\Delta f_k)$ 的主瓣宽度决定。由于主瓣第一个过零点大约在 $\pm 1/(LT_b)$，所以步进尺度可以直接写成：</p>
+          <div class="equation">$$\Delta f_{\text{step}}\approx \frac{1}{LT_b}=\frac{1\text{ kHz}}{L}$$</div>
+          <div class="equation-note">它对应 $G(L,\Delta f_k)$ 的主瓣第一个过零点尺度，因此也是课本从图 4.19 读出 200 Hz、100 Hz 这些示例的依据。</div>
+          <p>经验上取这个尺度附近作为步进，既不至于漏掉峰值，又能把频点数控制住。课本给出示例：$L=5$ 可用 200 Hz，$L=10$ 可用 100 Hz，对应最大灵敏度损失约 2 dB。</p>
+
+          <figure class="inline-figure">
+            <img src="assets/figures/fig-4-19-gain-function.png" alt="图 4.19 不同 L 值下的归一化增益函数">
+            <figcaption>图 4.19 很重要：它把“$L$ 越大，积分越强”和“$L$ 越大，对频率误差越敏感”这两件事画在了同一张图上。</figcaption>
+          </figure>
+
+          <div class="beginner-box">
+            <strong>平方检测为什么不是最终答案</strong>
+            <p>课本在式 (4.73)-(4.77) 讨论了对补偿后数据块先平方再看频谱的想法，并指出它更适合强信号。弱信号下平方操作会把有用频谱压得更差，因此后续才继续寻找一种能并行搜索 $\Delta f_k$、又适合弱信号的方法：竖块 FFT。</p>
+          </div>
+        </div>
+
+        <div class="canvas-panel after-demo">
+          <div class="canvas-card">
+            <header><strong>补偿前后相量</strong><span id="phasorLabel">残余频偏 310 Hz</span></header>
+            <canvas id="phasorCanvas" width="700" height="360"></canvas>
+          </div>
+          <div class="canvas-card">
+            <header><strong>归一化增益函数</strong><span>$|G(L,\Delta f)|/L$</span></header>
+            <canvas id="gainCanvas" width="700" height="360"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="vertical-fft">
+        <div class="section-header">
+          <div>
+            <h2>第三步：放弃串行搜 $\Delta f_k$，改用竖块 FFT</h2>
+            <p class="section-kicker">课本在否定了“串行试遍 $\Delta f_k$”和“平方后看频谱”两个思路之后，才真正进入这一方法的关键：把同一码相位的慢时间序列直接送进 FFT。</p>
+          </div>
+          <div class="formula-chip">竖向采样率：1 kHz</div>
+        </div>
+
+        <div class="lesson-body">
+          <h3>1. 课本为什么要放弃“先平方再 FFT”</h3>
+          <p>对补偿后块累加结果 $Y_{k,l}(n)$ 先平方，确实能把信号分量变成连续波，再尝试用频谱峰判断最优 $\Delta f_k$。但课本并没有停在这个直觉上，而是继续把噪声项也写出来，得到式 (4.73)-(4.77)：</p>
+          <div class="equation">$$Y_{k,l}^2(n)=D_k^2(n)C_k^2(n)e^{j2\pi 2(f_k+\Delta f_k)nT_s}L^2+V^2(n)+2LV(n)D_k(n)C_k(n)e^{j2\pi(f_k+\Delta f_k)nT_s}$$</div>
+          <div class="equation-note">这就是课本式 (4.73)。平方以后，理想信号项变成连续波，但同时也引入了噪声平方项和信号-噪声交叉项。</div>
+          <div class="equation">$$\eta_n(L)=V^2(n)+2LV(n)D_k(n)C_k(n)e^{j2\pi(f_k+\Delta f_k)nT_s}$$</div>
+          <div class="equation">$$E[\eta_n(L)]=L\sigma^2,\qquad \operatorname{var}[\eta_n(L)]=2L^2\sigma^4+4L^3\sigma^2$$</div>
+          <div class="equation">$$\mathrm{SN}_{\text{平方}}=\frac{L^4}{2L^2\sigma^4+4L^3\sigma^2}$$</div>
+          <div class="derivation-grid">
+            <div class="derivation-card">
+              <h3>强信号时为什么可行</h3>
+              <div class="equation">$$\frac{L}{\sigma^2}\gg 1\Longrightarrow \mathrm{SN}_{\text{平方}}\approx\frac{L}{4\sigma^2}$$</div>
+              <p>当相干累加后的信号已经明显强于噪声时，平方后仍能保留可见的频谱峰，所以对强信号有效。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>弱信号问题</h3>
+              <div class="equation">$$\frac{L}{\sigma^2}\ll 1\Longrightarrow \mathrm{SN}_{\text{平方}}\approx\frac{L^2}{2\sigma^4}\to 0$$</div>
+              <p>弱信号下有用谱峰会被噪声平方项和交叉项淹没，因此平方检测不适合作为 4.1.6 的主算法。</p>
+            </div>
+          </div>
+          <p>这一步对初学者很关键：课本不是简单说“平方不好用”，而是明确算出它只在强信号时有效。弱信号又不能无限增大 $L$ 来补救，因为 $L$ 还受导航比特或 NH 码跳变边界约束。</p>
+
+          <h3>2. 竖块中到底是什么数据</h3>
+          <p>图 4.20 把原始一维流重排成二维矩阵后，固定列索引 $i$，第 $i$ 个竖块是：</p>
+          <div class="equation">$$[s(i),\ s(N+i),\ \dots,\ s((L-1)N+i)]$$</div>
+          <p>课本式 (4.78) 说明，这串数据都可以写成第一个样点乘上一个按块序号增长的复指数。由于 $NT_s=1$ ms，可把频率拆成整数 kHz 部分和 1 kHz 内的余数部分：</p>
+          <div class="equation">$$s(i)=C_kD_ke^{j2\pi f_kiT_s+\phi_0},\quad s(N+i)=s(i)e^{j2\pi f_kNT_s},\quad \dots,\quad s((L-1)N+i)=s(i)e^{j2\pi f_k(L-1)NT_s}$$</div>
+          <div class="equation-note">这就是课本式 (4.78)：同一竖块里的所有点都等于第一个点乘上一个“按块序号线性增长的相位因子”。</div>
+          <div class="equation">$$f_k=F\cdot 1\text{ kHz}+\Delta f_k,\qquad 0\le \Delta f_k<1\text{ kHz}$$</div>
+          <div class="equation">$$e^{j2\pi f_k qNT_s}=e^{j2\pi(F\cdot 1\text{ kHz}+\Delta f_k)q\cdot 1\text{ ms}}=e^{j2\pi Fq}e^{j2\pi \Delta f_k qNT_s}=e^{j2\pi \Delta f_k qNT_s}$$</div>
+          <div class="equation-note">这一步把课本式 (4.79) 解释清楚了：整数 kHz 部分在竖向采样点上只会多转整圈，因此真正留下来的只有余频 $\Delta f_k$。</div>
+
+          <figure class="inline-figure">
+            <img src="assets/figures/fig-4-20-horizontal-vertical-blocks.png" alt="图 4.20 将采样数据按横块和竖块重新排列">
+            <figcaption>图 4.20 与式 (4.78)-(4.79) 要一起看：重排后的每个竖块，本质上是一条“每隔 1 ms 观察一次相位”的慢时间序列。</figcaption>
+          </figure>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：为什么要把 $f_k$ 分成整数 kHz 和余频</strong>
+            <p>竖向相当于每 1 ms 采样一次，即竖向采样率是 1 kHz。若某个频率恰好是 1 kHz 的整数倍，那么每隔 1 ms 观察一次时相位只会多转整圈，所以在竖向上“看不出来”，真正要分辨的是余下的 $\Delta f_k$。</p>
+          </div>
+
+          <h3>3. 对竖块做 FFT 后，为什么它等价于并行搜索余频</h3>
+          <p>由于竖块中相邻样点时间间隔是 1 ms，所以竖向慢时间采样率就是 1 kHz。对每个竖块做 $L$ 点 FFT，得到：</p>
+          <div class="equation">$$Y(i,m)=\sum_{n=0}^{L-1}s(i)e^{j\Delta\omega nNT_s}e^{-j\omega_m nNT_s},\qquad \omega_m=\frac{2\pi f_p}{L}m,\ f_p=1\text{ kHz}$$</div>
+          <p>这就是课本式 (4.80)。它的含义不是“做一个黑盒 FFT”，而是：同时用 $L$ 个候选角频率 $\omega_m$ 去反向旋转这 $L$ 个样点，然后分别看看谁最能把它们对齐。</p>
+          <div class="equation">$$Y(i,m)=s(i)\frac{1-e^{j(\Delta\omega-\omega_m)LNT_s}}{1-e^{j(\Delta\omega-\omega_m)NT_s}}=s(i)A(m)$$</div>
+          <p>这就是课本式 (4.81)。当 $\omega_m=\Delta\omega$ 时，反向旋转刚好抵消真实旋转，$L$ 个箭头方向完全一致，于是这一谱线输出最大。</p>
+          <div class="equation">$$|A(m)|=\left|\frac{\sin\left[(\Delta\omega-\omega_m)LNT_s/2\right]}{\sin\left[(\Delta\omega-\omega_m)NT_s/2\right]}\right|$$</div>
+          <div class="equation-note">这就是课本式 (4.82)。它和前面的 $G(L,f)$ 是同一类狄利克雷核：只要第 $m$ 根谱线的反向旋转最接近真实余频，这个模值就会冲到接近 $L$。</div>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：把竖块 FFT 看成“一次并行试遍 $L$ 个余频”</strong>
+            <p>若 $L=10$，竖向采样率是 1 kHz，那么第 $m$ 根谱线对应的候选余频就是 $0,100,200,\dots,900$ Hz。也就是说，竖块 FFT 不是额外做一个频谱图，而是一次性并行测试这 10 个 $\Delta f_k$ 假设。</p>
+          </div>
+
+          <figure class="inline-figure">
+            <img src="assets/figures/fig-4-21-after-vertical-fft.png" alt="图 4.21 对竖块数据进行 FFT 后的数据块矩阵">
+            <figcaption>图 4.21 是竖块 FFT 的结果矩阵。原来的“时间块”在这里被替换成“频率假设块”，每一行对应一个余频索引 $m$。</figcaption>
+          </figure>
+
+          <div class="beginner-box">
+            <strong>粗频率与细频率的分工</strong>
+            <p>竖向处理只能看见 1 kHz 内的余频，所以本地载波要按 1 kHz 粗搜索。粗频率 $f_i$ 决定落在哪个 1 kHz 区间，竖块 FFT 的 $m$ 决定这个区间内的细频率。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="horizontal-capture">
+        <div class="section-header">
+          <div>
+            <h2>第四步：横块并行捕获，把余频索引变成最终二维峰</h2>
+            <p class="section-kicker">竖块 FFT 只解决“1 kHz 内哪条余频谱线最像真实相位旋转”。真正的捕获结果，还要把这个频率索引和伪码相位联系起来，形成频率 × 码相位的二维搜索面。</p>
+          </div>
+          <div class="formula-chip">公共项：$Y(i,m)=s(i)A(m)$</div>
+        </div>
+
+        <div class="lab-grid">
+          <div class="lab-card">
+            <h3>频率索引能量</h3>
+            <p>拖动首屏的残余频偏和分块数 $L$，观察哪个 $m$ 谱线能量最高。$L$ 越大，1 kHz 被切得越细，频率分辨率越高；固定 $m$ 后，这一行就要交给横块捕获继续找码相位。</p>
+            <div class="canvas-card" style="margin-top:18px">
+              <canvas id="binCanvas" width="900" height="360"></canvas>
+            </div>
+          </div>
+          <div class="formula-stack">
+            <div class="formula-card">
+              <h3>重排后的横块</h3>
+              <div class="equation">$$[Y(0,m),Y(1,m),\dots,Y(N-1,m)]$$</div>
+              <p>固定某个频率索引 $m$ 后，把所有横向位置收集起来，就得到一个新的等效 1 ms 数据块。</p>
+            </div>
+            <div class="formula-card">
+              <h3>选频因子</h3>
+              <div class="equation">$$A(m)=\frac{1-e^{j(\Delta\omega-\omega_m)LNT_s}}{1-e^{j(\Delta\omega-\omega_m)NT_s}}$$</div>
+              <p>$A(m)$ 与横向采样位置 $i$ 无关，所以它不会破坏伪码结构，只相当于给整个横块乘了一个复系数。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="after-demo lesson-body">
+          <h3>1. 为什么 FFT 后还要“重新排列”</h3>
+          <p>对每个竖块做 FFT 后，我们得到的是“同一码相位下，多个候选频率的输出”。但码相位捕获要求输入的是“同一频率假设下，一个完整 1 ms 序列”。因此必须交换观察角度：从“按列看频率输出”切换成“按行看同频率假设”。</p>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：为什么 FFT 后要重新排列</strong>
+            <p>竖向 FFT 把原来的 $L$ 个 1 ms 时间块变成 $L$ 个频率假设块。做码相位搜索时必须保持频率索引一致，所以要把同一个 $m$ 下的 $Y(0,m),Y(1,m),\dots,Y(N-1,m)$ 收集成一个新的等效 1 ms 序列。</p>
+          </div>
+
+          <p>固定 $m$ 后，这个横块可以写成：</p>
+          <div class="equation">$$s(0)A(m),\ s(1)A(m),\ \dots,\ s(N-1)A(m)$$</div>
+          <p>因为 $A(m)$ 对所有横向样点相同，所以横向采样间隔仍是 $T_s$，伪码结构仍是完整的 1 ms 周期。于是这一行可以直接送入 4.1.4 节已有的 FFT 快速捕获框架。</p>
+          <div class="derivation-grid">
+            <div class="derivation-card">
+              <h3>公共因子为什么不改码结构</h3>
+              <div class="equation">$$Y(i,m)=s(i)A(m)\Longrightarrow Y_m=[s(0),\dots,s(N-1)]\cdot A(m)$$</div>
+              <p>$A(m)$ 只依赖频率索引 $m$，不依赖横向采样位置 $i$。所以同一行里所有采样点只是被整体乘上同一个复数，不会打乱 1 ms 伪码周期。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>为什么能直接接 4.1.4 节</h3>
+              <div class="equation">$$R_m(\tau)=\sum_{i=0}^{N-1}Y(i,m)c^*(i-\tau)=A(m)\sum_{i=0}^{N-1}s(i)c^*(i-\tau)$$</div>
+              <p>公共因子可以从求和号中提出，所以它只改变峰值高度，不改变峰所在的码相位位置。实现上仍可用 FFT/IFFT 一次性得到全部 $\tau$ 的相关结果。</p>
+            </div>
+          </div>
+
+          <figure class="inline-figure">
+            <img src="assets/figures/fig-4-22-horizontal-fft-capture.png" alt="图 4.22 对横块数据进行 FFT 码相位并行捕获">
+            <figcaption>图 4.22 对应“把频率问题交给竖块，把码相位问题交给横块”。每一个横块都做一次标准的 FFT/IFFT 并行码相位捕获。</figcaption>
+          </figure>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：为什么粗频率不能省掉</strong>
+            <p>竖块 FFT 只能看见 1 kHz 内的余频；而横向相邻采样点间隔是 $T_s$，所以整数 kHz 频差在横向并不会自动消失。若外层粗频率 $f_i$ 设错了，横向相关时仍会保留线性相位斜率，相关峰会被压低甚至接近 0。</p>
+          </div>
+
+          <h3>2. 最终频率估计怎么组成</h3>
+          <p>竖块 FFT 只给出 1 kHz 区间内的细频率索引；横块捕获外层枚举的本地载波频率给出粗频率区间。课本式 (4.83) 把两者拼起来：</p>
+          <div class="equation">$$f(m)=f_i+m\cdot\frac{1\text{ kHz}}{L},\qquad m=0,1,\dots,L-1$$</div>
+          <p>因此最终搜索面有两个坐标轴：一个是频率，一个是码相位。二维峰的位置同时给出多普勒频率和伪码相位估计。</p>
+        </div>
+      </section>
+
+      <section class="section" id="cost">
+        <div class="section-header">
+          <div>
+            <h2>第五步：运算量推导、粗细频率分工与方法总结</h2>
+            <p class="section-kicker">课本 4.1.6 最后不是只说“它更快”，而是明确按 FFT 点数把分块方法和常规长 FFT 方法逐项算出来。这里也顺手回答语雀笔记里关于“为什么粗搜索间隔自然是 1 kHz”的疑问。</p>
+          </div>
+          <div class="formula-chip">默认 $N=1024$</div>
+        </div>
+
+        <div class="lab-grid">
+          <div class="lab-card">
+            <h3>二维相关热力图</h3>
+            <p>亮点位置表示检测峰。纵向索引对应细频率 $m$，横向索引对应伪码相位。真实捕获时外层还要枚举粗频率档位 $f_i$。</p>
+            <div class="canvas-card" style="margin-top:18px">
+              <canvas id="heatCanvas" width="900" height="430"></canvas>
+            </div>
+          </div>
+          <div class="formula-stack">
+            <div class="formula-card">
+              <h3>频率估计</h3>
+              <div class="equation">$$\hat f=f_i+m\cdot\frac{1\text{ kHz}}{L},\quad m=0,1,\dots,L-1$$</div>
+              <p>$f_i$ 是外层粗搜索的 1 kHz 档位，$m$ 是竖块 FFT 给出的余频索引，二维峰横坐标则给出码相位。</p>
+            </div>
+            <div class="formula-card">
+              <h3>粗搜索间隔为什么固定 1 kHz</h3>
+              <div class="equation">$$e^{j2\pi(f+1\text{ kHz})n\cdot 1\text{ ms}}=e^{j2\pi fn\cdot 1\text{ ms}}$$</div>
+              <p>竖块方向慢时间采样率就是 1 kHz，竖块 FFT 只能区分一个 1 kHz 周期内的余频。若粗搜索间隔大于 1 kHz 会漏档，小于 1 kHz 会重复覆盖同一段余频。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pipeline" aria-label="算法流程">
+          <div class="pipe-step"><b>01</b><span>外层枚举本地载波粗频率，间隔 1 kHz。</span></div>
+          <div class="pipe-step"><b>02</b><span>把 $L$ ms 数据排成 $L\times N$ 矩阵。</span></div>
+          <div class="pipe-step"><b>03</b><span>对每个竖块做 $L$ 点 FFT，得到余频索引。</span></div>
+          <div class="pipe-step"><b>04</b><span>按 $m$ 重排成 $L$ 个横块，每块长度 $N$。</span></div>
+          <div class="pipe-step"><b>05</b><span>对每个横块做 FFT/IFFT 相关，找二维峰。</span></div>
+        </div>
+
+        <div class="lesson-body after-demo">
+          <h3>1. 课本如何逐项算出分块法的运算量</h3>
+          <p>若把一个 $n$ 点 FFT 的运算量近似记为 $n\operatorname{lb}(n)$，则分块法包含两部分：</p>
+          <ul>
+            <li>竖块 FFT：共有 $N$ 个竖块，每个做一次 $L$ 点 FFT，故运算量是 $NL\operatorname{lb}(L)$。</li>
+            <li>横块捕获：粗频率共有 10 个 1 kHz 档位；每个档位有 $L$ 个横块，每个横块要做一次 $N$ 点 FFT 和一次 $N$ 点 IFFT，所以是 $20LN\operatorname{lb}(N)$。</li>
+          </ul>
+          <div class="equation">$$C_{\text{Block}}=20LN\operatorname{lb}(N)+NL\operatorname{lb}(L)$$</div>
+          <div class="equation-note">把式 (4.84) 因式分解后就是 $NL[20\operatorname{lb}(N)+\operatorname{lb}(L)]$。这一步很重要，因为它直接揭示了分块法随积分长度增长时主要是线性放大，而不是平方放大。</div>
+
+          <h3>2. 常规长 FFT 为什么会多出一个 $L$</h3>
+          <p>若直接把整段数据当成长为 $LN$ 的单个序列处理，为了达到同样的细频率分辨率 $\Delta f=1\text{ kHz}/L$，搜索频点数必须从 10 个粗频率点扩展到 $10L$ 个细频率点。每个频点又需要一次 $LN$ 点 FFT 和一次 $LN$ 点 IFFT：</p>
+          <div class="equation">$$C_{\text{Normal}}=20L\cdot LN\operatorname{lb}(LN)=20L^2N\operatorname{lb}(N)+20L^2N\operatorname{lb}(L)$$</div>
+          <div class="equation-note">这里多出来的一个 $L$ 同时出现在“频点数”与“单次 FFT 长度”里，所以最终形成了 $L^2$ 级别的复杂度，这正是式 (4.85) 比式 (4.84) 大得多的根源。</div>
+
+          <div class="derivation-grid">
+            <div class="derivation-card">
+              <h3>分块方案的结构</h3>
+              <div class="equation">$$N\text{ 个 }L\text{ 点 FFT}+20L\text{ 个 }N\text{ 点 FFT}$$</div>
+              <p>把“大问题”拆成许多短 FFT，适合快速算法与硬件流水。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>常规方案的结构</h3>
+              <div class="equation">$$20L\text{ 个 }LN\text{ 点 FFT}$$</div>
+              <p>频点更多、单次 FFT 也更长，所以主项自然带上 $L^2$。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>复杂度差异的本质</h3>
+              <div class="equation">$$C_{\text{Block}}\propto L,\qquad C_{\text{Normal}}\propto L^2\qquad (L>1)$$</div>
+              <p>随着积分长度增加，常规方案既要搜更多频点，又要做更长 FFT；分块方案则把“更长时间”的代价拆成短 FFT 与并行余频搜索，因此增长更慢。</p>
+            </div>
+          </div>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：复杂度差异的直觉</strong>
+            <p>分块方案是 $N$ 个 $L$ 点 FFT 加 $20L$ 个 $N$ 点 FFT；常规方案是 $20L$ 个 $LN$ 点 FFT。常规方案主项带 $L^2$，分块方案主要随 $L$ 线性增长，所以 $L$ 越大差距越明显。</p>
+          </div>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：为什么粗搜索自然取 1 kHz，而不是 2 kHz 或 500 Hz</strong>
+            <p>竖块 FFT 的无模糊范围正好是 1 kHz。若粗间隔取 2 kHz，会漏掉一半 1 kHz 区间；若取 500 Hz，各粗档与竖块 FFT 的 1 kHz 余频范围会互相重叠，形成重复搜索。所以 1 kHz 不是拍脑袋，而是和竖向 1 ms 采样严格配套的。</p>
+          </div>
+
+          <figure class="inline-figure">
+            <img src="assets/figures/fig-4-23-computation-comparison.png" alt="图 4.23 分块处理和常规 FFT 的运算量比较">
+            <figcaption>图 4.23 是课本对式 (4.84) 和式 (4.85) 的可视化结论：随着 $L$ 增大，常规长 FFT 的增长速度明显更快。</figcaption>
+          </figure>
+        </div>
+
+        <div class="lab-grid">
+          <div class="lab-card">
+            <h3>复杂度曲线</h3>
+            <p>曲线使用课本式 (4.84) 与 (4.85) 的量级表达。拖动首屏 $L$ 可以看到当前点在曲线上的位置。</p>
+            <div class="canvas-card" style="margin-top:18px">
+              <canvas id="costCanvas" width="900" height="430"></canvas>
+            </div>
+          </div>
+          <div class="formula-stack">
+            <div class="formula-card">
+              <h3>分块处理</h3>
+              <div class="equation">$$C_{\text{Block}}=20LN\operatorname{lb}(N)+NL\operatorname{lb}(L)$$</div>
+            </div>
+            <div class="formula-card">
+              <h3>常规长 FFT 捕获</h3>
+              <div class="equation">$$C_{\text{Normal}}=20L^2N\operatorname{lb}(N)+20L^2N\operatorname{lb}(L)$$</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="iq">
+        <div class="section-header">
+          <div>
+            <h2>I/Q 前置理解：为什么课本可以用复信号写捕获模型</h2>
+            <p class="section-kicker">这一段不是 4.1.6 主算法的一步，但它解释了语雀笔记中反复提到的“旋转箭头”“复指数补偿”和“正负频率区分”。</p>
+          </div>
+          <div class="formula-chip">$s[n]=I[n]+jQ[n]$</div>
+        </div>
+
+        <div class="explain-grid">
+          <article>
+            <h3>硬件视角</h3>
+            <p>天线接收到的是实信号。接收机把它分成两路，分别与 $\cos(2\pi f_ct)$ 和 $-\sin(2\pi f_ct)$ 混频，再低通滤波，得到 I 路和 Q 路。</p>
+          </article>
+          <article>
+            <h3>复平面视角</h3>
+            <p>单路实信号只看到旋转向量在一个轴上的投影；I/Q 两路同时给出横坐标和纵坐标，因此能表示完整相位，也能区分正频率和负频率。</p>
+          </article>
+          <article>
+            <h3>计算视角</h3>
+            <p>硬件并不真的“乘虚数”，而是执行 $I'=I\cos\theta+Q\sin\theta$、$Q'=Q\cos\theta-I\sin\theta$ 这样的实数乘加。</p>
+          </article>
+        </div>
+
+        <div class="lesson-body after-demo">
+          <div class="derivation-grid">
+            <div class="derivation-card">
+              <h3>I/Q 混频后低通输出</h3>
+              <div class="equation">$$I\approx \frac{A}{2}\cos\phi,\qquad Q\approx \frac{A}{2}\sin\phi$$</div>
+              <p>这就是为什么 I/Q 两路能恢复相位信息，而单路实采样会在某些相位下丢失幅度信息。</p>
+            </div>
+            <div class="derivation-card">
+              <h3>复数形式的离散采样</h3>
+              <div class="equation">$$I_k[n]=D_k[n]C_k[n]\cos(2\pi f_knT_s)+v_I[n]$$</div>
+              <div class="equation">$$Q_k[n]=D_k[n]C_k[n]\sin(2\pi f_knT_s)+v_Q[n]$$</div>
+              <div class="equation">$$s_k[n]=I_k[n]+jQ_k[n]$$</div>
+              <p>这正是课本在 4.1.6 使用复指数建模的硬件背景。</p>
+            </div>
+          </div>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：实信号频谱冗余性</strong>
+            <p>实信号的 DFT 满足 $X[(-k)\bmod N]=X^*[k]$，负频率点等于正频率点的共轭，所以单路实信号频谱存在共轭对称冗余。I/Q 复采样打破了这种只看投影的限制，更适合做载波相位与频率补偿。</p>
+          </div>
+
+          <div class="note-insert">
+            <strong>语雀笔记插入：硬件里“乘复指数”到底怎么算</strong>
+            <p>载波补偿 $(I+jQ)e^{-j\theta}$ 在硬件里不是直接算虚数乘法，而是展开为 $I'=I\cos\theta+Q\sin\theta$、$Q'=Q\cos\theta-I\sin\theta$。因此“复数旋转”本质上仍然是实数乘加电路。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="figures">
+        <div class="section-header">
+          <div>
+            <h2>教材原图索引：本页中已经用到的图 4.17 至图 4.23</h2>
+            <p class="section-kicker">这些原图已经穿插在前面的讲义流程里。这里保留一个集中索引，方便对照课本版式查看。</p>
+          </div>
+          <div class="formula-chip">图 4.17 至图 4.23</div>
+        </div>
+
+        <div class="figure-grid">
+          <figure class="figure-card">
+            <img src="assets/figures/fig-4-17-data-blocks.png" alt="图 4.17 L 毫秒采样数据分块">
+            <figcaption>图 4.17：$L$ ms 数据按 1 ms 切成 $L$ 个块。</figcaption>
+          </figure>
+          <figure class="figure-card">
+            <img src="assets/figures/fig-4-18-phase-adjust-accumulation.png" alt="图 4.18 载波相位调整后的累加">
+            <figcaption>图 4.18：载波相位调整后，相同位置样点可同相累加。</figcaption>
+          </figure>
+          <figure class="figure-card">
+            <img src="assets/figures/fig-4-19-gain-function.png" alt="图 4.19 增益函数">
+            <figcaption>图 4.19：$L$ 越大，增益函数主瓣越窄，对频率误差越敏感。</figcaption>
+          </figure>
+          <figure class="figure-card">
+            <img src="assets/figures/fig-4-20-horizontal-vertical-blocks.png" alt="图 4.20 横块和竖块重排">
+            <figcaption>图 4.20：一维采样重排成横块和竖块矩阵。</figcaption>
+          </figure>
+          <figure class="figure-card">
+            <img src="assets/figures/fig-4-21-after-vertical-fft.png" alt="图 4.21 竖块 FFT 后矩阵">
+            <figcaption>图 4.21：竖块 FFT 后，矩阵按频率索引形成新横块。</figcaption>
+          </figure>
+          <figure class="figure-card">
+            <img src="assets/figures/fig-4-22-horizontal-fft-capture.png" alt="图 4.22 横块 FFT 码相位并行捕获">
+            <figcaption>图 4.22：每个横块进入 FFT/IFFT 码相位并行捕获。</figcaption>
+          </figure>
+          <figure class="figure-card">
+            <img src="assets/figures/fig-4-23-computation-comparison.png" alt="图 4.23 运算量对比">
+            <figcaption>图 4.23：分块处理与常规 FFT 捕获的运算量对比。</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <p class="footer">本页面为本地笔记整理文件：正文以课本 4.1.6 为主线，语雀笔记内容已按知识点插入讲解位置，并配套可视化和交互演示。</p>
+    </main>
+  </div>
+
+  <script>
+    const state = {
+      L: 8,
+      residual: 310,
+      codePhase: 7,
+      step: 0,
+      N: 16
+    };
+
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+    const log2 = (n) => Math.log(n) / Math.log(2);
+
+    function setupCanvas(canvas) {
+      const ctx = canvas.getContext("2d");
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, width: rect.width, height: rect.height };
+    }
+
+    function dirichletMagnitude(L, freqHz) {
+      const x = Math.PI * freqHz / 1000;
+      const denom = Math.sin(x);
+      if (Math.abs(denom) < 1e-9) return 1;
+      return Math.abs(Math.sin(L * x) / (L * denom));
+    }
+
+    function wrapToOneK(freq) {
+      return ((freq % 1000) + 1000) % 1000;
+    }
+
+    function signedBinError(freq, binFreq) {
+      let error = wrapToOneK(freq) - binFreq;
+      if (error > 500) error -= 1000;
+      if (error < -500) error += 1000;
+      return error;
+    }
+
+    function bestBin() {
+      const spacing = 1000 / state.L;
+      const raw = wrapToOneK(state.residual);
+      let m = Math.round(raw / spacing) % state.L;
+      if (m < 0) m += state.L;
+      return { m, spacing, freq: m * spacing };
+    }
+
+    function updateMetrics() {
+      const { m, spacing } = bestBin();
+      $("#lValue").textContent = state.L;
+      $("#freqValue").textContent = `${state.residual} Hz`;
+      $("#phaseValue").textContent = state.codePhase;
+      $("#binMetric").textContent = `${spacing.toFixed(spacing >= 100 ? 0 : 1)} Hz`;
+      $("#snrMetric").textContent = `${(10 * Math.log10(state.L)).toFixed(2)} dB`;
+      $("#binIndexMetric").textContent = `m=${m}`;
+      $("#phasorLabel").textContent = `残余频偏 ${state.residual} Hz`;
+    }
+
+    function drawHero() {
+      const canvas = $("#heroCanvas");
+      const { ctx, width, height } = setupCanvas(canvas);
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#061f35";
+      ctx.fillRect(0, 0, width, height);
+
+      const pad = 36;
+      const plotW = width - pad * 2;
+      const plotH = height - pad * 2;
+      ctx.strokeStyle = "rgba(255,255,255,.12)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 8; i++) {
+        const x = pad + plotW * i / 8;
+        ctx.beginPath();
+        ctx.moveTo(x, pad);
+        ctx.lineTo(x, height - pad);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 5; i++) {
+        const y = pad + plotH * i / 5;
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(width - pad, y);
+        ctx.stroke();
+      }
+
+      if (state.step === 0) {
+        $("#scopeCaption").textContent = "步骤 1：把 L ms 数据切成 1 ms 横块";
+        const rows = Math.min(state.L, 8);
+        const cols = state.N;
+        const cellW = plotW / cols;
+        const cellH = plotH / rows;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            ctx.fillStyle = c === state.codePhase ? "rgba(30,200,218,.85)" : "rgba(255,255,255,.08)";
+            if (r === Math.floor(rows / 2) && c === state.codePhase) ctx.fillStyle = "rgba(233,167,46,.92)";
+            roundRect(ctx, pad + c * cellW + 2, pad + r * cellH + 3, cellW - 4, cellH - 6, 7, true, false);
+          }
+        }
+      } else if (state.step === 1) {
+        $("#scopeCaption").textContent = "步骤 2：频偏导致相位旋转，补偿后同相叠加";
+        drawPhasorScene(ctx, width, height, true);
+      } else if (state.step === 2) {
+        $("#scopeCaption").textContent = "步骤 3：竖向 FFT 输出 L 个细频率索引";
+        drawBinsScene(ctx, width, height, true);
+      } else if (state.step === 3) {
+        $("#scopeCaption").textContent = "步骤 4：横向 FFT/IFFT 输出所有码相位相关";
+        drawHeatScene(ctx, width, height, true);
+      } else {
+        $("#scopeCaption").textContent = "步骤 5：二维峰值给出多普勒频率与码相位";
+        drawHeatScene(ctx, width, height, true, true);
+      }
+    }
+
+    function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function drawArrow(ctx, x, y, angle, len, color, width = 2) {
+      const x2 = x + Math.cos(angle) * len;
+      const y2 = y - Math.sin(angle) * len;
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x2, y2, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawPhasorScene(ctx, width, height, compact = false) {
+      const left = width * .28;
+      const right = width * .72;
+      const cy = height * .52;
+      const r = Math.min(width, height) * (compact ? .16 : .2);
+      const { freq } = bestBin();
+      const beforeAngles = [];
+      const afterAngles = [];
+      for (let i = 0; i < state.L; i++) {
+        beforeAngles.push(2 * Math.PI * state.residual * i / 1000);
+        afterAngles.push(2 * Math.PI * (state.residual - freq) * i / 1000);
+      }
+      drawAxis(ctx, left, cy, r, "补偿前");
+      drawAxis(ctx, right, cy, r, "补偿后");
+      beforeAngles.forEach((a, i) => drawArrow(ctx, left, cy, a, r * .82, i % 2 ? "#e9a72e" : "#1ec8da", 1.4));
+      afterAngles.forEach((a, i) => drawArrow(ctx, right, cy, a, r * .82, i % 2 ? "#e9a72e" : "#1ec8da", 1.4));
+      ctx.fillStyle = "rgba(255,255,255,.72)";
+      ctx.font = compact ? "12px sans-serif" : "14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`匹配谱线 ${bestBin().freq.toFixed(0)} Hz`, right, height - 24);
+    }
+
+    function drawAxis(ctx, x, y, r, label) {
+      ctx.strokeStyle = "rgba(255,255,255,.18)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x - r - 10, y);
+      ctx.lineTo(x + r + 10, y);
+      ctx.moveTo(x, y + r + 10);
+      ctx.lineTo(x, y - r - 10);
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,.8)";
+      ctx.font = "13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(label, x, y - r - 18);
+    }
+
+    function drawPartitionMatrix() {
+      const matrix = $("#partitionMatrix");
+      matrix.innerHTML = "";
+      const rows = state.L;
+      const cols = state.N;
+      matrix.style.gridTemplateRows = `repeat(${rows}, auto)`;
+      for (let r = 0; r < rows; r++) {
+        const row = document.createElement("div");
+        row.className = "matrix-row";
+        const label = document.createElement("div");
+        label.className = "row-label";
+        label.textContent = `块 ${r}`;
+        row.appendChild(label);
+        for (let c = 0; c < cols; c++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          if (c === state.codePhase) cell.classList.add("same-phase");
+          if (c === state.codePhase && r === Math.round(rows * .55)) cell.classList.add("peak-cell");
+          cell.textContent = `s(${r * cols + c})`;
+          row.appendChild(cell);
+        }
+        matrix.appendChild(row);
+      }
+    }
+
+    function drawPhasorCanvas() {
+      const { ctx, width, height } = setupCanvas($("#phasorCanvas"));
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#fffdf7";
+      ctx.fillRect(0, 0, width, height);
+      const left = width * .28;
+      const right = width * .72;
+      const cy = height * .53;
+      const r = Math.min(width, height) * .23;
+      drawLightAxis(ctx, left, cy, r, "未补偿");
+      drawLightAxis(ctx, right, cy, r, "按最近谱线补偿");
+      const { freq } = bestBin();
+      for (let i = 0; i < state.L; i++) {
+        drawArrow(ctx, left, cy, 2 * Math.PI * state.residual * i / 1000, r * .82, i % 2 ? "#d8672d" : "#087f93", 1.5);
+        drawArrow(ctx, right, cy, 2 * Math.PI * (state.residual - freq) * i / 1000, r * .82, i % 2 ? "#d8672d" : "#087f93", 1.5);
+      }
+      ctx.fillStyle = "#27465d";
+      ctx.font = "13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("箭头越集中，跨块相干累加越强", width / 2, height - 20);
+    }
+
+    function drawLightAxis(ctx, x, y, r, label) {
+      ctx.strokeStyle = "rgba(9,34,56,.18)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x - r - 10, y);
+      ctx.lineTo(x + r + 10, y);
+      ctx.moveTo(x, y + r + 10);
+      ctx.lineTo(x, y - r - 10);
+      ctx.stroke();
+      ctx.fillStyle = "#092238";
+      ctx.font = "14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(label, x, y - r - 18);
+    }
+
+    function drawGainCanvas() {
+      const { ctx, width, height } = setupCanvas($("#gainCanvas"));
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#fffdf7";
+      ctx.fillRect(0, 0, width, height);
+      const pad = { l: 54, r: 22, t: 24, b: 42 };
+      const w = width - pad.l - pad.r;
+      const h = height - pad.t - pad.b;
+      drawPlotFrame(ctx, pad, width, height, "频率误差 Hz", "增益");
+      ctx.strokeStyle = "#087f93";
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      for (let i = 0; i <= 420; i++) {
+        const f = -500 + 1000 * i / 420;
+        const g = dirichletMagnitude(state.L, f);
+        const x = pad.l + (f + 500) / 1000 * w;
+        const y = pad.t + (1 - g) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      const current = clamp(state.residual, -500, 500);
+      const x = pad.l + (current + 500) / 1000 * w;
+      const y = pad.t + (1 - dirichletMagnitude(state.L, current)) * h;
+      ctx.fillStyle = "#e9a72e";
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawPlotFrame(ctx, pad, width, height, xLabel, yLabel) {
+      const w = width - pad.l - pad.r;
+      const h = height - pad.t - pad.b;
+      ctx.strokeStyle = "rgba(9,34,56,.16)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.t + h * i / 4;
+        ctx.beginPath();
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(width - pad.r, y);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 4; i++) {
+        const x = pad.l + w * i / 4;
+        ctx.beginPath();
+        ctx.moveTo(x, pad.t);
+        ctx.lineTo(x, height - pad.b);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = "rgba(9,34,56,.55)";
+      ctx.beginPath();
+      ctx.moveTo(pad.l, pad.t);
+      ctx.lineTo(pad.l, height - pad.b);
+      ctx.lineTo(width - pad.r, height - pad.b);
+      ctx.stroke();
+      ctx.fillStyle = "#64798a";
+      ctx.font = "12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(xLabel, pad.l + w / 2, height - 10);
+      ctx.save();
+      ctx.translate(16, pad.t + h / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+    }
+
+    function drawBinCanvas() {
+      const { ctx, width, height } = setupCanvas($("#binCanvas"));
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#fffdf7";
+      ctx.fillRect(0, 0, width, height);
+      drawBinsScene(ctx, width, height, false);
+    }
+
+    function drawBinsScene(ctx, width, height, dark = false) {
+      const pad = { l: 46, r: 24, t: 28, b: 54 };
+      const w = width - pad.l - pad.r;
+      const h = height - pad.t - pad.b;
+      const spacing = 1000 / state.L;
+      const best = bestBin().m;
+      const text = dark ? "rgba(255,255,255,.78)" : "#27465d";
+      const grid = dark ? "rgba(255,255,255,.12)" : "rgba(9,34,56,.12)";
+      ctx.strokeStyle = grid;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.t + h * i / 4;
+        ctx.beginPath();
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(width - pad.r, y);
+        ctx.stroke();
+      }
+      const gap = 8;
+      const barW = Math.max(10, (w - gap * (state.L - 1)) / state.L);
+      for (let m = 0; m < state.L; m++) {
+        const binFreq = m * spacing;
+        const error = signedBinError(state.residual, binFreq);
+        const amp = dirichletMagnitude(state.L, error);
+        const bh = Math.max(5, amp * h);
+        const x = pad.l + m * (barW + gap);
+        const y = pad.t + h - bh;
+        ctx.fillStyle = m === best ? "#e9a72e" : "#1ec8da";
+        roundRect(ctx, x, y, barW, bh, 8, true, false);
+        ctx.fillStyle = text;
+        ctx.font = "11px sans-serif";
+        ctx.textAlign = "center";
+        if (state.L <= 12 || m % 2 === 0) ctx.fillText(m, x + barW / 2, height - 28);
+      }
+      ctx.fillStyle = text;
+      ctx.font = "13px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(`每根谱线间隔 ${spacing.toFixed(1)} Hz`, pad.l, 18);
+      ctx.textAlign = "center";
+      ctx.fillText("频率索引 m", width / 2, height - 8);
+    }
+
+    function drawHeatCanvas() {
+      const { ctx, width, height } = setupCanvas($("#heatCanvas"));
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#fffdf7";
+      ctx.fillRect(0, 0, width, height);
+      drawHeatScene(ctx, width, height, false, true);
+    }
+
+    function drawHeatScene(ctx, width, height, dark = false, mark = false) {
+      const pad = { l: 52, r: 22, t: 24, b: 44 };
+      const w = width - pad.l - pad.r;
+      const h = height - pad.t - pad.b;
+      const cellW = w / state.N;
+      const cellH = h / state.L;
+      const best = bestBin().m;
+      for (let r = 0; r < state.L; r++) {
+        for (let c = 0; c < state.N; c++) {
+          const df = Math.abs(r - best);
+          const dc = Math.min(Math.abs(c - state.codePhase), state.N - Math.abs(c - state.codePhase));
+          const signal = Math.exp(-(df * df) / 1.4) * Math.exp(-(dc * dc) / 5);
+          const ripple = .08 * (Math.sin((r + 1) * 1.7 + c * .93) + 1);
+          const v = clamp(signal + ripple, 0, 1);
+          ctx.fillStyle = colorHeat(v, dark);
+          ctx.fillRect(pad.l + c * cellW + 1, pad.t + r * cellH + 1, cellW - 2, cellH - 2);
+        }
+      }
+      ctx.strokeStyle = dark ? "rgba(255,255,255,.2)" : "rgba(9,34,56,.25)";
+      ctx.strokeRect(pad.l, pad.t, w, h);
+      if (mark) {
+        const x = pad.l + (state.codePhase + .5) * cellW;
+        const y = pad.t + (best + .5) * cellH;
+        ctx.strokeStyle = "#e9a72e";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, Math.min(cellW, cellH) * .56, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.fillStyle = dark ? "rgba(255,255,255,.78)" : "#27465d";
+      ctx.font = "12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("码相位", pad.l + w / 2, height - 10);
+      ctx.save();
+      ctx.translate(18, pad.t + h / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("频率索引 m", 0, 0);
+      ctx.restore();
+    }
+
+    function colorHeat(v, dark = false) {
+      const a = clamp(v, 0, 1);
+      if (dark) {
+        const r = Math.round(8 + 225 * a);
+        const g = Math.round(64 + 135 * a);
+        const b = Math.round(92 - 52 * a);
+        return `rgb(${r},${g},${b})`;
+      }
+      const r = Math.round(238 + 15 * a);
+      const g = Math.round(249 - 80 * a);
+      const b = Math.round(251 - 198 * a);
+      return `rgb(${r},${g},${b})`;
+    }
+
+    function drawCostCanvas() {
+      const { ctx, width, height } = setupCanvas($("#costCanvas"));
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#fffdf7";
+      ctx.fillRect(0, 0, width, height);
+      const pad = { l: 62, r: 26, t: 26, b: 54 };
+      const w = width - pad.l - pad.r;
+      const h = height - pad.t - pad.b;
+      const N = 1024;
+      const Ls = [1, 2, 4, 8, 16, 32];
+      const block = Ls.map(L => 20 * L * N * log2(N) + N * L * log2(Math.max(1, L)));
+      const normal = Ls.map(L => 20 * L * L * N * log2(N) + 20 * L * L * N * log2(Math.max(1, L)));
+      const max = Math.max(...normal);
+      drawPlotFrame(ctx, pad, width, height, "L 数值", "相对运算量");
+      plotLine(ctx, Ls, normal, max, pad, w, h, "#092238", 3);
+      plotLine(ctx, Ls, block, max, pad, w, h, "#1ec8da", 3);
+      const currentX = pad.l + (Math.log2(state.L) / Math.log2(32)) * w;
+      ctx.strokeStyle = "#e9a72e";
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(currentX, pad.t);
+      ctx.lineTo(currentX, height - pad.b);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#092238";
+      ctx.font = "13px sans-serif";
+      ctx.fillText("常规 FFT 捕获", width - 150, pad.t + 26);
+      ctx.fillStyle = "#087f93";
+      ctx.fillText("数据分块并 FFT 捕获", width - 190, height - pad.b - 26);
+    }
+
+    function plotLine(ctx, xs, ys, max, pad, w, h, color, lineWidth) {
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+      xs.forEach((L, i) => {
+        const x = pad.l + (Math.log2(L) / Math.log2(32)) * w;
+        const y = pad.t + (1 - ys[i] / max) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      xs.forEach((L, i) => {
+        const x = pad.l + (Math.log2(L) / Math.log2(32)) * w;
+        const y = pad.t + (1 - ys[i] / max) * h;
+        ctx.beginPath();
+        ctx.arc(x, y, L === state.L ? 6 : 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function updateAll() {
+      updateMetrics();
+      drawHero();
+      drawPartitionMatrix();
+      drawPhasorCanvas();
+      drawGainCanvas();
+      drawBinCanvas();
+      drawHeatCanvas();
+      drawCostCanvas();
+      if (window.MathJax?.typesetPromise) MathJax.typesetPromise();
+    }
+
+    function initControls() {
+      $("#lRange").addEventListener("input", (event) => {
+        state.L = Number(event.target.value);
+        updateAll();
+      });
+      $("#freqRange").addEventListener("input", (event) => {
+        state.residual = Number(event.target.value);
+        updateAll();
+      });
+      $("#phaseRange").addEventListener("input", (event) => {
+        state.codePhase = Number(event.target.value);
+        updateAll();
+      });
+      $$("#flowTabs button").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.step = Number(button.dataset.step);
+          $$("#flowTabs button").forEach((item) => item.classList.toggle("active", item === button));
+          drawHero();
+        });
+      });
+      window.addEventListener("resize", () => updateAll());
+    }
+
+    function initScrollState() {
+      const links = $$("#toc a");
+      const sections = links.map((link) => $(link.getAttribute("href"))).filter(Boolean);
+      const onScroll = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = max > 0 ? Math.round(window.scrollY / max * 100) : 0;
+        $("#progressBar").style.width = `${clamp(progress, 0, 100)}%`;
+        $("#progressText").textContent = `${clamp(progress, 0, 100)}%`;
+        let active = sections[0]?.id;
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= 120) active = section.id;
+        }
+        links.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === `#${active}`));
+      };
+      document.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initControls();
+      initScrollState();
+      updateAll();
+    });
+  </script>
+</body>
+</html>
