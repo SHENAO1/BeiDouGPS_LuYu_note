@@ -224,9 +224,9 @@
 
     main {
       padding: 34px clamp(20px, 4vw, 54px) 80px;
-      max-width: 1480px;
+      max-width: min(1480px, 66.666vw);
       width: 100%;
-      margin: 0 auto;
+      margin: 0 auto 0 0;
     }
 
     .hero {
@@ -1098,6 +1098,11 @@
     @media (max-width: 1180px) {
       .layout {
         grid-template-columns: 1fr;
+      }
+
+      main {
+        max-width: 1480px;
+        margin: 0 auto;
       }
 
       .rail {
