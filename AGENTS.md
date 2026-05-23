@@ -15,6 +15,12 @@
 - 根站仓库与当前仓库的同步，优先使用 `E:\Code\SHENAO1.github.io\scripts\sync-from-source.ps1`，将当前仓库的 `site/` 副本同步到根站仓库的发布目录。
 - `https://shenao1.github.io/BeiDouGPS_LuYu_note/` 这类项目站地址只作为预览或仓库级页面存在，不作为默认对外入口；除非用户明确要求，否则最终交付应以根站地址为准。
 
+## Notes 首页组织规则
+
+- `Notes` 首层入口默认按“书籍 / 教材”组织，而不是按知识块组织；除非用户明确要求改成专题式首页，否则应保持书架式入口。
+- 书籍首页通常位于 `site/notes/index.html`，章节入口通常位于 `site/notes/books/**/index.html`。
+- 新增章节笔记时，除了更新对应 Markdown 与正文 HTML，还应检查所属书籍的 `Notes` 首页卡片、章节目录页和发布数量说明是否需要同步更新。
+
 ## 输出要求
 
 - 每次完成笔记相关任务后，最终回复必须列出本次需要检查的 Markdown 文件和 HTML 文件。

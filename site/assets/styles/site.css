@@ -22,7 +22,7 @@
   --radius-lg: 22px;
   --radius-md: 16px;
   --radius-sm: 12px;
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 * {
@@ -196,9 +196,9 @@ input {
 
 .hero-copy h1 {
   margin: 0;
-  font-size: clamp(42px, 6vw, 72px);
-  line-height: 1.05;
-  letter-spacing: -0.055em;
+  font-size: clamp(28px, 3.6vw, 52px);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
 }
 
 .hero-copy p {
@@ -296,6 +296,116 @@ input {
     linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: auto, 28px 28px, 28px 28px;
   opacity: 0.85;
+}
+
+/* ── Hero Art: blog-desk cards ─────────────────────────── */
+.blog-desk {
+  position: absolute;
+  inset: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  z-index: 1;
+}
+
+.blog-panel {
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  color: #e8f7ff;
+}
+
+.blog-panel.is-main {
+  background: rgba(32, 193, 207, 0.1);
+  border-color: rgba(32, 193, 207, 0.24);
+  box-shadow: 0 8px 32px rgba(32, 193, 207, 0.08);
+}
+
+.blog-panel > span,
+.blog-mini-card > span {
+  display: block;
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(32, 193, 207, 0.85);
+  margin-bottom: 7px;
+}
+
+.blog-panel > strong,
+.blog-mini-card > strong {
+  display: block;
+  font-size: 17px;
+  line-height: 1.28;
+  color: #f0faff;
+  margin-bottom: 6px;
+}
+
+.blog-panel > p,
+.blog-mini-card > p {
+  margin: 0;
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: rgba(200, 230, 245, 0.78);
+}
+
+.blog-stack {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.blog-mini-card {
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+  color: #e8f7ff;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.blog-mini-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.blog-mini-card > span {
+  color: rgba(244, 201, 116, 0.9);
+  margin-bottom: 5px;
+}
+
+.blog-mini-card > strong {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.blog-mini-card > p {
+  font-size: 11px;
+}
+
+.blog-rhythm {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.blog-rhythm span {
+  padding: 5px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: rgba(231, 248, 255, 0.5);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  letter-spacing: 0.04em;
 }
 
 .orb-shell {
@@ -2093,9 +2203,10 @@ body.is-scrolled .site-nav {
   }
 }
 
-/* Notes knowledge directory */
+/* Notes book-first library */
 .page-notes .notes-landing-header {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.58fr);
+  align-items: center;
 }
 
 .page-notes .index-copy h1 {
@@ -2111,6 +2222,43 @@ body.is-scrolled .site-nav {
 
 .notes-directory-card {
   display: none;
+}
+
+.notes-book-hero {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+
+.book-cover-pair {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.notes-book-hero img {
+  width: min(48%, 76px);
+  aspect-ratio: 5 / 7;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 18px 34px rgba(7, 23, 34, 0.16);
+}
+
+.notes-book-hero h2 {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.18;
+}
+
+.notes-book-hero p {
+  margin: 10px 0 0;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.7;
 }
 
 .directory-rule {
@@ -2130,13 +2278,20 @@ body.is-scrolled .site-nav {
   line-height: 1.5;
 }
 
-.knowledge-directory {
+.knowledge-directory,
+.book-library,
+.book-section {
   margin-top: 24px;
   padding: 18px;
   border: 1px solid rgba(16, 42, 63, 0.08);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.52);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+.book-library {
+  display: grid;
+  gap: 18px;
 }
 
 .directory-heading {
@@ -2149,6 +2304,7 @@ body.is-scrolled .site-nav {
 
 .directory-heading h2,
 .knowledge-section h2,
+.book-section h2,
 .module-bridge-card h2 {
   margin: 0;
   font-family: var(--font-display);
@@ -2168,6 +2324,219 @@ body.is-scrolled .site-nav {
   font-family: var(--font-ui);
   font-size: 15px;
   line-height: 1.72;
+}
+
+.book-card {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.34fr) minmax(0, 1fr);
+  gap: 22px;
+  padding: 20px;
+  border: 1px solid rgba(16, 42, 63, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 252, 252, 0.64));
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.book-cover-frame {
+  display: block;
+  width: min(100%, 260px);
+  justify-self: center;
+  padding: 10px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(236, 246, 244, 0.78));
+  border: 1px solid rgba(16, 42, 63, 0.08);
+  box-shadow: 0 18px 42px rgba(7, 23, 34, 0.14);
+}
+
+.book-cover-frame img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.book-card-body {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.book-card h3 {
+  margin: 0;
+  max-width: 18ch;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.1;
+}
+
+.book-card p {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--ink-soft);
+  line-height: 1.78;
+}
+
+.book-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-family: var(--font-ui);
+}
+
+.book-progress span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(16, 42, 63, 0.08);
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.book-progress strong {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.book-section {
+  display: grid;
+  gap: 18px;
+  scroll-margin-top: 128px;
+}
+
+.book-section-head {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.book-section-kicker {
+  padding-top: 5px;
+  color: var(--cyan-deep);
+  text-transform: uppercase;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.book-section h2 {
+  font-size: clamp(24px, 2.1vw, 32px);
+}
+
+.book-section-head p {
+  margin: 7px 0 0;
+  max-width: 74ch;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.78;
+}
+
+.chapter-list {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid rgba(16, 42, 63, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.chapter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 18px;
+  color: var(--ink);
+  border-top: 1px solid rgba(16, 42, 63, 0.08);
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.chapter-row:first-child {
+  border-top: 0;
+}
+
+a.chapter-row:hover {
+  background: rgba(110, 199, 208, 0.1);
+  transform: translateX(3px);
+}
+
+.chapter-row span:first-child {
+  display: block;
+  color: var(--cyan-deep);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.chapter-row strong {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 21px;
+  line-height: 1.22;
+}
+
+.chapter-row p {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+.chapter-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(88, 121, 76, 0.18);
+  color: #315f36;
+  background: rgba(88, 121, 76, 0.12);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.chapter-state.is-upcoming,
+.chapter-row.is-upcoming .chapter-state {
+  border-color: rgba(212, 108, 88, 0.2);
+  color: #8a3c2c;
+  background: rgba(212, 108, 88, 0.12);
+}
+
+.chapter-state.is-outline {
+  border-color: rgba(16, 42, 63, 0.1);
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.chapter-row.is-upcoming {
+  color: var(--ink-soft);
+}
+
+.book-topic-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.book-topic-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 12px;
+  border: 1px solid rgba(16, 42, 63, 0.08);
+  border-radius: 999px;
+  color: var(--cyan-deep);
+  background: rgba(255, 255, 255, 0.66);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .knowledge-block-grid {
@@ -2321,9 +2690,14 @@ body.is-scrolled .site-nav {
 
 @media (max-width: 1180px) {
   .page-notes .notes-landing-header,
+  .book-card,
   .knowledge-section .catalog-grid,
   .catalog-card--feature {
     grid-template-columns: 1fr;
+  }
+
+  .book-cover-frame {
+    justify-self: start;
   }
 
   .knowledge-block-grid {
@@ -2341,7 +2715,13 @@ body.is-scrolled .site-nav {
     font-size: clamp(32px, 10vw, 42px);
   }
 
+  .notes-book-hero {
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 14px;
+  }
+
   .directory-heading,
+  .book-section-head,
   .knowledge-section-head,
   .knowledge-block-grid {
     grid-template-columns: 1fr;
@@ -2353,9 +2733,25 @@ body.is-scrolled .site-nav {
   }
 
   .knowledge-directory,
+  .book-library,
+  .book-section,
+  .book-card,
   .knowledge-section {
     padding: 14px;
     border-radius: 16px;
+  }
+
+  .book-card h3 {
+    max-width: 100%;
+  }
+
+  .chapter-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .chapter-state {
+    justify-self: start;
   }
 
   .knowledge-block {
@@ -2364,5 +2760,840 @@ body.is-scrolled .site-nav {
 
   .catalog-card--feature img {
     min-height: 190px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * GitHub Projects + Stars: distinct visual tier
+ * Projects = dark "repo terminal" feature cards (stand out from
+ * the cream paper notes/modules around them).
+ * Stars   = compact secondary-tier reference shelf (browseable,
+ * not featured).
+ * ──────────────────────────────────────────────────────────── */
+
+/* Shared: GitHub-style language dot palette. data-lang attribute
+   is added to .repo-topline span. Falls back to cyan. */
+[data-lang] {
+  --lang-color: #6ec7d0;
+}
+[data-lang="Python"]     { --lang-color: #3572A5; }
+[data-lang="JavaScript"] { --lang-color: #f1e05a; }
+[data-lang="TypeScript"] { --lang-color: #3178c6; }
+[data-lang="Rust"]       { --lang-color: #dea584; }
+[data-lang="Go"]         { --lang-color: #00ADD8; }
+[data-lang="C#"]         { --lang-color: #178600; }
+[data-lang="C++"]        { --lang-color: #f34b7d; }
+[data-lang="TeX"]        { --lang-color: #3D6117; }
+[data-lang="Shell"]      { --lang-color: #89e051; }
+[data-lang="HTML"]       { --lang-color: #e34c26; }
+[data-lang="Guide"]      { --lang-color: #8b5cf6; }
+[data-lang="Skill"]      { --lang-color: #6ec7d0; }
+
+/* ── Projects: dark repo cards ─────────────────────────────── */
+
+.projects-grid--repos {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* Higher specificity (.project-card.repo-card) so we beat the
+   generic .project-card cream-paper rules from the UI-refresh layer
+   in BOTH light and dark mode. */
+.project-card.repo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 26px 26px 24px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #0e2032 0%, #0a1622 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e8f0f6;
+  box-shadow:
+    0 18px 48px rgba(7, 21, 34, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  min-height: 0;
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* Top accent strip — GitHub green → cyan */
+.project-card.repo-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: auto;
+  height: 3px;
+  background: linear-gradient(90deg, #2ea043 0%, #6ec7d0 55%, rgba(110, 199, 208, 0) 100%);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.project-card.repo-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(110, 199, 208, 0.3);
+  box-shadow:
+    0 28px 64px rgba(7, 21, 34, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Repo topline: mono path + language pill */
+.repo-card .repo-topline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.repo-card .repo-topline strong {
+  font-family: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, "Microsoft YaHei Mono", monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #c9d4df;
+  letter-spacing: 0;
+}
+
+.repo-card .repo-topline span[data-lang] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: #b8c5d2;
+}
+
+.repo-card .repo-topline span[data-lang]::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--lang-color);
+  flex: none;
+}
+
+.project-card.repo-card h3 {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #f1f6fb;
+  letter-spacing: -0.02em;
+}
+
+.project-card.repo-card p {
+  margin: 0 0 18px;
+  color: rgba(232, 240, 246, 0.78);
+  font-size: 15px;
+  line-height: 1.78;
+}
+
+/* Repo meta row: icons + values, no chip pills (overrides the
+   generic chip styling from the UI-refresh layer). */
+.project-card.repo-card .repo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-bottom: 16px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: #9aacbb;
+}
+
+.project-card.repo-card .repo-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: #9aacbb;
+}
+
+.project-card.repo-card .repo-meta span::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  flex: none;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.85;
+}
+
+/* Octicons (license / star / fork / clock), inlined as data URIs.
+   Order in markup is consistent: License, Stars, Forks, Updated. */
+.project-card.repo-card .repo-meta span:nth-child(1)::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%239aacbb'%3E%3Cpath d='M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.234a.75.75 0 0 1 0 1.5h-.427l2.111 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.016.015-.045.04a3.516 3.516 0 0 1-.685.45A4.492 4.492 0 0 1 13 11c-.88 0-1.556-.22-2.023-.454a3.515 3.515 0 0 1-.685-.45l-.045-.04-.016-.015-.006-.006-.002-.002-.001-.002.529-.531-.53.53a.75.75 0 0 1-.154-.838L12.178 4.5h-.162c-.305 0-.604-.079-.868-.231l-1.29-.736a.245.245 0 0 0-.124-.033H8.75V13h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5V3.5h-.984a.245.245 0 0 0-.124.033l-1.289.737c-.265.15-.564.23-.869.23h-.162l2.112 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.016.015-.045.04a3.517 3.517 0 0 1-.685.45A4.492 4.492 0 0 1 3 11c-.88 0-1.556-.22-2.023-.454a3.512 3.512 0 0 1-.685-.45l-.045-.04-.016-.015-.006-.006-.002-.002-.001-.002.529-.531-.53.53a.75.75 0 0 1-.154-.838L2.178 4.5H1.75a.75.75 0 0 1 0-1.5h2.234a.249.249 0 0 0 .125-.033l1.288-.737c.265-.15.564-.23.869-.23h.984V.75a.75.75 0 0 1 1.5 0Zm2.945 8.477c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L13 6.327Zm-10 0c.285.135.718.273 1.305.273s1.02-.138 1.305-.273L3 6.327Z'/%3E%3C/svg%3E");
+}
+
+.project-card.repo-card .repo-meta span:nth-child(2)::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23e3b341'%3E%3Cpath d='M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z'/%3E%3C/svg%3E");
+  opacity: 1;
+}
+
+.project-card.repo-card .repo-meta span:nth-child(3)::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%239aacbb'%3E%3Cpath d='M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z'/%3E%3C/svg%3E");
+}
+
+.project-card.repo-card .repo-meta span:nth-child(4)::before {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%239aacbb'%3E%3Cpath d='M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7-3.25v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5a.75.75 0 0 1 1.5 0Z'/%3E%3C/svg%3E");
+}
+
+/* Topic pills inside the dark card */
+.project-card.repo-card .module-stack {
+  margin-bottom: 18px;
+}
+
+.project-card.repo-card .module-stack span {
+  padding: 5px 11px;
+  background: rgba(110, 199, 208, 0.1);
+  border: 1px solid rgba(110, 199, 208, 0.18);
+  color: #a3d4d9;
+  box-shadow: none;
+  font-size: 11.5px;
+}
+
+/* CTA: chip-shaped pill with arrow that slides on hover */
+.project-card.repo-card .text-link {
+  margin-top: auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f6fb;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+/* Override the gradient-underline ::after from the UI-refresh layer
+   (which would otherwise add a stretched gradient line after the link). */
+.project-card.repo-card .text-link::after {
+  content: "→";
+  width: auto;
+  height: auto;
+  flex: none;
+  background: none;
+  border-radius: 0;
+  opacity: 1;
+  margin-left: 2px;
+  color: inherit;
+  font-family: var(--font-ui);
+  transition: transform 0.18s ease;
+}
+
+.project-card.repo-card .text-link:hover {
+  background: rgba(110, 199, 208, 0.16);
+  border-color: rgba(110, 199, 208, 0.32);
+}
+
+.project-card.repo-card .text-link:hover::after {
+  transform: translateX(3px);
+}
+
+/* ── Favorites: compact reference shelf ────────────────────── */
+
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.favorite-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(16, 42, 63, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.favorite-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(16, 42, 63, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 12px 28px rgba(7, 21, 34, 0.08);
+}
+
+.favorite-card .repo-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+}
+
+.favorite-card .repo-topline strong {
+  font-family: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.favorite-card .repo-topline span[data-lang] {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.favorite-card .repo-topline span[data-lang]::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--lang-color);
+  flex: none;
+}
+
+.favorite-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.favorite-card p {
+  margin: 0;
+  flex: 1;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.62;
+}
+
+/* Arrow link in the bottom corner — replaces the gradient
+   underline that the UI-refresh layer adds to .text-link. */
+.favorite-card .text-link {
+  margin-top: 2px;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--cyan-deep);
+}
+
+.favorite-card .text-link::after {
+  content: "→";
+  width: auto;
+  height: auto;
+  flex: none;
+  background: none;
+  border-radius: 0;
+  opacity: 1;
+  margin-left: 2px;
+  color: inherit;
+  font-family: var(--font-ui);
+  transition: transform 0.18s ease;
+}
+
+.favorite-card:hover .text-link::after {
+  transform: translateX(3px);
+}
+
+@media (max-width: 1180px) {
+  .projects-grid--repos {
+    grid-template-columns: 1fr;
+  }
+
+  .favorites-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .favorites-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-card.repo-card {
+    padding: 22px 20px 20px;
+  }
+
+  .project-card.repo-card h3 {
+    font-size: 22px;
+  }
+
+  .project-card.repo-card .repo-meta {
+    gap: 8px 14px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * Accessibility: focus rings, anchor offsets, reduced motion
+ * Applies to both light and dark modes.
+ * ──────────────────────────────────────────────────────────── */
+
+/* Sticky-nav-aware anchor offset for in-page jumps (#projects, etc.) */
+:where(section[id], article[id], main [id]) {
+  scroll-margin-top: 110px;
+}
+
+/* Visible keyboard focus for all interactive elements.
+   `:focus-visible` only triggers on keyboard tabbing — mouse clicks stay clean. */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible,
+.nav-links a:focus-visible,
+.button-primary:focus-visible,
+.button-secondary:focus-visible,
+.book-topic-links a:focus-visible,
+.module-cta:focus-visible,
+.text-link:focus-visible,
+.filter-bar button:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+/* Pill-shaped controls deserve a pill-shaped ring */
+.nav-links a:focus-visible,
+.button-primary:focus-visible,
+.button-secondary:focus-visible,
+.filter-bar button:focus-visible {
+  border-radius: 999px;
+  outline-offset: 4px;
+}
+
+/* Whole cards become clickable via their inner link — give them a subtle ring too */
+.module-card:has(a:focus-visible),
+.note-card:has(a:focus-visible),
+.project-card:has(a:focus-visible),
+.catalog-card:has(a:focus-visible),
+.book-card:has(a:focus-visible),
+.knowledge-block:has(a:focus-visible) {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+/* Honour reduced-motion across the board: kill hover lifts, scroll smoothing,
+   reveal animations. Above we already gate some animations behind
+   `prefers-reduced-motion: no-preference`; this catches the rest. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .module-card:hover,
+  .video-card:hover,
+  .template-card:hover,
+  .note-feature:hover,
+  .note-card:hover,
+  .project-card:hover,
+  .about-card:hover,
+  .roadmap-card:hover,
+  .catalog-card:hover,
+  .index-feature:hover,
+  .video-feature:hover,
+  .book-card:hover,
+  .chapter-row:hover,
+  .knowledge-block:hover,
+  .button-primary:hover,
+  .button-secondary:hover,
+  .blog-mini-card:hover,
+  .filter-bar button:hover,
+  body.is-scrolled .site-nav,
+  .nav-links a:hover {
+    transform: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * Dark mode
+ * Triggered by OS preference. To force light/dark manually later,
+ * mirror these rules under `:root[data-theme="dark"]`.
+ * ──────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* Text */
+    --ink: #e8eef5;
+    --ink-soft: #b6c3d1;
+    --muted: #8a9aa9;
+
+    /* Paper / surfaces */
+    --paper: #0a1622;
+    --paper-deep: #0e1f2f;
+    --surface: rgba(20, 32, 46, 0.72);
+    --surface-strong: rgba(28, 42, 58, 0.88);
+
+    /* Lines / dividers */
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+
+    /* Night accents stay dark but lift slightly so navbar still has contrast against page bg */
+    --night: #05111c;
+    --night-2: #0a2236;
+
+    /* Accent colors — brightened a touch for AA on dark surfaces */
+    --cyan: #4dd6dc;
+    --cyan-deep: #6ec7d0;
+    --amber: #f0b85a;
+    --amber-soft: #f6d28b;
+    --rose: #e08c7a;
+    --green: #8aaf86;
+
+    /* Shadows: more depth on dark, no gold cast */
+    --shadow-lg: 0 28px 90px rgba(0, 0, 0, 0.55);
+    --shadow-md: 0 18px 48px rgba(0, 0, 0, 0.45);
+    --shadow-card: 0 14px 34px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Body: replace warm paper gradient with a calm deep-night gradient */
+  body {
+    background:
+      radial-gradient(circle at 12% 10%, rgba(240, 184, 90, 0.08), transparent 28rem),
+      radial-gradient(circle at 88% 8%, rgba(77, 214, 220, 0.1), transparent 26rem),
+      linear-gradient(180deg, #07131e 0%, #0a1c2c 50%, #061320 100%);
+  }
+
+  /* Page-note pages override body bg too — mirror it */
+  body.page-note {
+    background:
+      radial-gradient(circle at 12% 10%, rgba(240, 184, 90, 0.06), transparent 24rem),
+      radial-gradient(circle at 86% 6%, rgba(77, 214, 220, 0.08), transparent 22rem),
+      linear-gradient(180deg, #07131e 0%, #0a1c2c 50%, #061320 100%);
+  }
+
+  /* The faint grid overlay needs a lighter line to be visible on dark */
+  body::before {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    opacity: 0.5;
+  }
+
+  /* The white "sun" radial at top of page from the UI-refresh layer — dim it */
+  body::after {
+    background: radial-gradient(circle at 50% -10%, rgba(77, 214, 220, 0.05), transparent 26rem);
+  }
+
+  /* Sticky navbar: it's already dark, just deepen its contrast a touch and adjust glow */
+  .site-nav {
+    background: linear-gradient(135deg, rgba(4, 14, 22, 0.96), rgba(10, 30, 46, 0.94));
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Panels: the UI-refresh layer hardcodes a white-ish gradient — flip to translucent night */
+  .hero-panel,
+  .panel,
+  .index-panel {
+    background: linear-gradient(180deg, rgba(20, 34, 48, 0.78), rgba(14, 26, 38, 0.62));
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* Card surfaces (module/note/project/catalog/etc.) */
+  .module-card,
+  .video-card,
+  .template-card,
+  .module-bridge-card,
+  .note-feature,
+  .note-card,
+  .project-card,
+  .about-card,
+  .roadmap-card,
+  .catalog-card,
+  .index-feature,
+  .video-feature,
+  .template-panel {
+    background: linear-gradient(180deg, rgba(22, 36, 52, 0.86), rgba(16, 28, 42, 0.7));
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .module-card:hover,
+  .video-card:hover,
+  .template-card:hover,
+  .note-feature:hover,
+  .note-card:hover,
+  .project-card:hover,
+  .about-card:hover,
+  .roadmap-card:hover,
+  .catalog-card:hover,
+  .index-feature:hover,
+  .video-feature:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 20px 54px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Featured variants in the UI-refresh layer also hardcode whites */
+  .note-card.featured-pll,
+  .module-card.is-video,
+  .module-bridge-card {
+    background:
+      linear-gradient(180deg, rgba(22, 36, 52, 0.92), rgba(16, 28, 42, 0.74)),
+      radial-gradient(circle at 86% 14%, rgba(240, 184, 90, 0.08), transparent 24%);
+  }
+
+  /* Hero headings — light text on dark */
+  .hero-copy h1,
+  .index-copy h1,
+  .index-feature h2,
+  .directory-heading h2,
+  .book-card h3,
+  .book-section h2,
+  .chapter-row strong,
+  .knowledge-section h2,
+  .module-bridge-card h2 {
+    color: #f1f6fb;
+  }
+
+  /* Hero metrics tiles */
+  .hero-metrics article {
+    background: linear-gradient(180deg, rgba(22, 36, 52, 0.78), rgba(16, 28, 42, 0.6));
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Secondary button on dark needs darker fill, light text */
+  .button-secondary {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* Primary button is amber — keep dark text on it, but tighten shadow */
+  .button-primary {
+    color: #0a1622;
+    box-shadow: 0 12px 26px rgba(240, 184, 90, 0.18);
+  }
+
+  /* Chips, tags, formula spans */
+  .formula-line span,
+  .module-stack span,
+  .tag-row span,
+  .chip-row span,
+  .book-progress span,
+  .catalog-meta span,
+  .note-meta span {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--ink-soft);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* Status pills — keep semantic colors but rebalance contrast */
+  .module-status {
+    color: #d6f0e0;
+    background: rgba(138, 175, 134, 0.18);
+  }
+
+  .module-status.is-draft {
+    color: #f6e0b5;
+    background: rgba(240, 184, 90, 0.18);
+  }
+
+  .module-status.is-upcoming {
+    color: #f4c7bc;
+    background: rgba(224, 140, 122, 0.2);
+  }
+
+  .knowledge-state {
+    color: #b8d8be;
+    background: rgba(138, 175, 134, 0.16);
+    border-color: rgba(138, 175, 134, 0.28);
+  }
+
+  .knowledge-state.is-upcoming {
+    color: #f4c7bc;
+    background: rgba(224, 140, 122, 0.18);
+    border-color: rgba(224, 140, 122, 0.3);
+  }
+
+  /* Decorative media wells — the hardcoded cream gradients turn into deep teal */
+  .note-feature-media,
+  .catalog-card img,
+  .pll-art {
+    background: linear-gradient(135deg, #0d1f2d 0%, #0a1a25 100%);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .pll-art {
+    background:
+      radial-gradient(circle at 18% 58%, rgba(77, 214, 220, 0.18), transparent 20%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(135deg, #0d1f2d 0%, #0a1a25 100%);
+    background-size: auto, 24px 24px, 24px 24px, auto;
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .catalog-art {
+    background:
+      radial-gradient(circle at 24% 18%, rgba(77, 214, 220, 0.18), transparent 24%),
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(135deg, #0d1f2d 0%, #0a1a25 100%);
+    background-size: auto, 24px 24px, 24px 24px, auto;
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Filter bar + breadcrumb pills */
+  .filter-bar {
+    background: rgba(20, 34, 48, 0.5);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .filter-bar button {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .breadcrumb {
+    background: rgba(20, 34, 48, 0.66);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Knowledge directory blocks (notes index) */
+  .knowledge-directory,
+  .book-library,
+  .book-section,
+  .knowledge-section {
+    background: rgba(20, 34, 48, 0.46);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .book-card,
+  .chapter-list {
+    background: linear-gradient(180deg, rgba(22, 36, 52, 0.88), rgba(16, 28, 42, 0.7));
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .book-cover-frame {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(20, 34, 48, 0.7));
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.42);
+  }
+
+  .chapter-row {
+    border-color: rgba(255, 255, 255, 0.07);
+  }
+
+  a.chapter-row:hover {
+    background: rgba(110, 199, 208, 0.12);
+  }
+
+  .chapter-state {
+    color: #b8d8be;
+    background: rgba(138, 175, 134, 0.16);
+    border-color: rgba(138, 175, 134, 0.28);
+  }
+
+  .chapter-state.is-upcoming,
+  .chapter-row.is-upcoming .chapter-state {
+    color: #f4c7bc;
+    background: rgba(224, 140, 122, 0.18);
+    border-color: rgba(224, 140, 122, 0.3);
+  }
+
+  .chapter-state.is-outline {
+    color: var(--ink-soft);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .book-topic-links a {
+    color: var(--cyan-deep);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .knowledge-block {
+    color: var(--ink);
+    background: linear-gradient(180deg, rgba(22, 36, 52, 0.88), rgba(16, 28, 42, 0.7));
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .knowledge-block:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  }
+
+  .directory-rule span {
+    background: rgba(20, 34, 48, 0.6);
+    border-color: rgba(255, 255, 255, 0.06);
+    color: var(--ink-soft);
+  }
+
+  /* Dark about-card already exists — bump border to match */
+  .about-card.is-dark {
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* Project repo cards: already dark in light mode — just rebalance the shadow
+     so they don't look "floating" against the now-dark page background. */
+  .project-card.repo-card {
+    background: linear-gradient(180deg, #142838 0%, #0c1c2a 100%);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .project-card.repo-card:hover {
+    border-color: rgba(110, 199, 208, 0.35);
+    box-shadow:
+      0 28px 64px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* Favorite cards: flip from cream paper to dark glass shelf */
+  .favorite-card {
+    background: rgba(20, 34, 48, 0.5);
+    border-color: rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .favorite-card:hover {
+    border-color: rgba(110, 199, 208, 0.28);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 12px 28px rgba(0, 0, 0, 0.4);
   }
 }
