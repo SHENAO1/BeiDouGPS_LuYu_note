@@ -68,8 +68,16 @@
 .note-sidebar {
   position: sticky;
   top: 106px;
+  align-self: start;
   display: grid;
   gap: 14px;
+  max-height: calc(100vh - 126px);
+  z-index: 6;
+}
+
+.note-sidebar > div {
+  display: grid;
+  gap: 6px;
 }
 
 .note-sidebar h2 {
@@ -94,9 +102,15 @@
   border: 1px solid rgba(12, 36, 57, 0.08);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 16px 38px rgba(7, 21, 34, 0.08);
+  backdrop-filter: blur(14px);
 }
 
 .note-toc-shell summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   padding: 12px 14px;
   cursor: pointer;
   color: var(--ink);
@@ -112,9 +126,9 @@
 
 .note-toc-shell summary::after {
   content: "收起";
-  float: right;
   color: var(--muted);
   font-weight: 600;
+  flex: none;
 }
 
 .note-toc-shell:not([open]) summary::after {
@@ -123,10 +137,15 @@
 
 .note-toc-shell .note-toc {
   padding: 0 10px 10px;
+  max-height: calc(100vh - 240px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .note-toc a {
   display: block;
+  position: relative;
   padding: 8px 10px;
   border-radius: 12px;
   color: var(--ink-soft);
@@ -136,6 +155,11 @@
   transition: background 0.18s ease, color 0.18s ease;
 }
 
+.note-toc a.level-2 {
+  padding-left: 12px;
+  font-weight: 700;
+}
+
 .note-toc a:hover,
 .note-toc a.is-active {
   color: var(--ink);
@@ -143,8 +167,20 @@
 }
 
 .note-toc a.level-3 {
-  padding-left: 22px;
+  padding-left: 32px;
   color: var(--muted);
+  font-size: 12px;
+}
+
+.note-toc a.level-3::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 10px;
+  height: 1px;
+  background: rgba(12, 36, 57, 0.18);
+  transform: translateY(-50%);
 }
 
 .note-article .note-prose {
@@ -317,6 +353,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding: 6px 0 4px;
+  text-align: center;
 }
 
 .note-prose .math.display {
@@ -324,10 +361,46 @@
   overflow-y: hidden;
 }
 
-.note-prose img,
-.note-prose svg {
+.note-prose img {
   width: 100%;
   height: auto;
+}
+
+.note-prose figure {
+  margin: 18px 0;
+}
+
+.note-prose figure img {
+  display: block;
+  border: 1px solid rgba(12, 36, 57, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow-card);
+}
+
+.note-prose figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.note-prose mjx-container svg {
+  width: auto !important;
+  height: auto;
+  max-width: none;
+}
+
+.note-prose mjx-container:not([display="true"]) svg {
+  display: inline-block;
+  margin: 0;
+}
+
+.note-prose mjx-container[display="true"] svg {
+  display: block;
+  margin: 0 auto;
 }
 
 .note-prose .level1 > :first-child,
@@ -343,7 +416,41 @@
   }
 
   .note-sidebar {
-    position: static;
+    position: fixed;
+    top: 112px;
+    right: 18px;
+    width: min(320px, calc(100vw - 36px));
+    max-height: calc(100vh - 132px);
+    gap: 0;
+    z-index: 28;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .note-sidebar > div {
+    display: none;
+  }
+
+  .note-sidebar > * {
+    pointer-events: auto;
+  }
+
+  .note-toc-shell {
+    width: max-content;
+    margin-left: auto;
+    box-shadow: var(--shadow-md);
+  }
+
+  .note-toc-shell[open] {
+    width: 100%;
+  }
+
+  .note-toc-shell .note-toc {
+    max-height: calc(100vh - 190px);
   }
 }
 
@@ -365,7 +472,138 @@
     min-width: 560px;
   }
 
+  .note-sidebar {
+    top: 96px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
+  .note-toc-shell:not([open]) {
+    margin-left: auto;
+  }
+
+  .note-toc-shell[open] .note-toc {
+    max-height: calc(100vh - 176px);
+  }
+
   .note-toc-shell summary {
     padding: 12px;
+  }
+}
+
+/* UI refresh: align article pages with the new shared shell */
+.note-page {
+  width: min(1420px, calc(100% - 40px));
+}
+
+.note-intro {
+  gap: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 252, 252, 0.64)),
+    radial-gradient(circle at 88% 14%, rgba(214, 154, 50, 0.12), transparent 22%);
+}
+
+.note-intro-copy {
+  max-width: 74ch;
+}
+
+.note-intro-copy h1 {
+  max-width: 10ch;
+  font-family: var(--font-display);
+  font-size: clamp(40px, 4.6vw, 62px);
+  line-height: 1.04;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.note-intro-copy p {
+  max-width: 56ch;
+  line-height: 1.82;
+}
+
+.note-meta span {
+  padding: 9px 14px;
+  border-color: rgba(16, 42, 63, 0.07);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.note-layout {
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 28px;
+}
+
+.note-sidebar {
+  gap: 16px;
+}
+
+.note-toc-shell {
+  border-color: rgba(16, 42, 63, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(248, 252, 252, 0.68));
+  box-shadow: var(--shadow-card);
+}
+
+.note-toc a {
+  border: 1px solid transparent;
+}
+
+.note-toc a:hover,
+.note-toc a.is-active {
+  background: rgba(26, 179, 179, 0.08);
+  border-color: rgba(26, 179, 179, 0.1);
+}
+
+.note-article {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(248, 252, 252, 0.66)),
+    radial-gradient(circle at 92% 10%, rgba(26, 179, 179, 0.08), transparent 18%);
+}
+
+.note-prose p,
+.note-prose li,
+.note-prose blockquote p {
+  line-height: 1.9;
+}
+
+.note-prose blockquote {
+  border-left-width: 0;
+  box-shadow: var(--shadow-card);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 252, 252, 0.72)),
+    radial-gradient(circle at 8% 20%, rgba(26, 179, 179, 0.1), transparent 18%);
+}
+
+.note-prose table {
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 1120px) {
+  .note-page {
+    width: min(100%, calc(100% - 28px));
+  }
+
+  .note-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .note-article {
+    width: 100%;
+  }
+
+  .note-intro-copy h1 {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .note-intro-copy h1 {
+    font-size: clamp(34px, 11vw, 50px);
+  }
+
+  .note-meta span {
+    padding: 8px 12px;
   }
 }

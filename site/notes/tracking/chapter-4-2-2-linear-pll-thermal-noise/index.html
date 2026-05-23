@@ -1,0 +1,1314 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4.2.2 线性锁相环的热噪声性能分析 | HTML 章节笔记</title>
+  <meta name="description" content="4.2.2 线性锁相环的热噪声性能分析章节笔记 HTML 版：完整合并教材正文、公式、截图和补充分析。">
+  <link rel="stylesheet" href="../../../assets/styles/site.css">
+  <link rel="stylesheet" href="../../../assets/styles/article-note.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      },
+      svg: { fontCache: "global" }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+</script>
+</head>
+<body class="page-note">
+  <div class="site-shell note-page">
+    <header class="site-nav" aria-label="主导航">
+      <a class="brand-lockup" href="../../../index.html">
+        <span class="brand-mark">GN</span>
+        <span class="brand-copy">
+          <small>GNSS notebook and project archive</small>
+          <strong>SHENAO1 的学习主页</strong>
+        </span>
+      </a>
+      <nav class="nav-links">
+        <a href="../../../index.html">Home</a>
+        <a class="is-current" href="../../index.html">Notes</a>
+        <a href="../../../video-notes/">Video Notes</a>
+        <a href="../../../index.html#projects">Projects</a>
+        <a href="../../../index.html#about">About</a>
+      </nav>
+    </header>
+
+    <main class="page-grid">
+      <section class="panel note-intro">
+        <div class="breadcrumb">
+          <a href="../../../index.html">Home</a>
+          <span>/</span>
+          <a href="../../index.html">Notes</a>
+          <span>/</span>
+          <a href="../index.html">Tracking</a>
+          <span>/</span>
+          <span>4.2.2 线性锁相环的热噪声性能分析</span>
+        </div>
+
+        <div class="note-intro-copy">
+          <div class="eyeline">HTML chapter note</div>
+          <h1>4.2.2 线性锁相环的热噪声性能分析</h1>
+          <p>这页合并教材 4.2.2 的正文、公式和原图截图，并完整保留补充笔记中的推导与问答分析，作为后续发布到个人站点的新 4.2.2 内容。</p>
+        </div>
+
+        <div class="note-meta" aria-label="页面标签">
+          <span>Chapter 4.2.2</span>
+          <span>Tracking</span>
+          <span>PLL</span>
+          <span>热噪声分析</span>
+          <span>教材 + 补充</span>
+          <span>HTML 笔记</span>
+        </div>
+
+        <div class="note-actions">
+          <a class="button-secondary" href="../index.html">返回跟踪环专题</a>
+        </div>
+      </section>
+
+      <section class="note-layout">
+        <aside class="panel note-sidebar" aria-label="章节目录">
+          <div>
+            <div class="eyeline">On this page</div>
+            <h2>章节目录</h2>
+            <p>目录按正文中的三级、四级标题自动生成，优先展示真正的内容章节与推导小节。</p>
+          </div>
+          <details class="note-toc-shell" id="noteTocShell" open>
+            <summary>章节导航</summary>
+            <nav class="note-toc" id="noteToc">
+</nav>
+          </details>
+        </aside>
+
+        <article class="panel note-article">
+          <div class="note-prose">
+<section id="线性锁相环的热噪声性能分析" class="level1">
+<h1>4.2.2 线性锁相环的热噪声性能分析</h1>
+<blockquote>
+<p>说明：这一版用于发布到站点，目标是把教材 4.2.2 的正文、公式和图示，以及补充笔记中的全部问题分析合并为一份新的 4.2.2 内容。<br />
+教材图 4.31 和图 4.32 不重绘，直接采用从教材 PDF 裁出的截图。<br />
+HTML 发布路径：<code>site/notes/tracking/chapter-4-2-2-linear-pll-thermal-noise/index.html</code></p>
+</blockquote>
+<section id="一教材正文完整整理" class="level2">
+<h2>一、教材正文完整整理</h2>
+<section id="加性噪声对载波相位的影响" class="level3">
+<h3>1. 加性噪声对载波相位的影响</h3>
+<p>因为锁相环要跟踪的物理量是输入信号的相位，所以对其进行噪声分析就是对输出相位的噪声进行分析。假设输入信号中叠加了高斯白噪声，很显然，这里的噪声不会直接叠加在信号的载波相位上。实际上，这些噪声直接反映在信号的幅度上，但噪声的存在会影响载波通过零点的时刻。如果通过检测信号过零点的时刻来测量载波相位，就会影响相位的测量值，从而间接影响载波相位的稳定，这就是加性噪声对载波相位的影响。</p>
+<section id="补充问题-2待审核输入明明是电压为什么-pll-说自己在跟踪相位" class="level4">
+<h4>补充问题 2（待审核）：输入明明是电压，为什么 PLL 说自己在跟踪相位</h4>
+<p>实际进入接收机 ADC 或模拟前端的量当然是电压波形，而不是一个直接写在接口上的“相位值”。但对一个载波来说，电压波形可以写成</p>
+<p><span class="math display">\[
+r(t)=A(t)\cos\theta_i(t)+n(t)
+\]</span></p>
+<p>或者在 GNSS 信号里更完整地写成</p>
+<p><span class="math display">\[
+r(t)=A\,C(t)D(t)\cos\theta_i(t)+n(t)
+\]</span></p>
+<p>这里 <span class="math inline">\(r(t)\)</span> 是看得见、采得到的电压；<span class="math inline">\(\theta_i(t)\)</span> 是藏在这个电压波形里的载波相位状态。相位不是另一个独立输入端口，而是决定“这个正弦波在时间轴上平移到哪里”的参数。频率则是相位的变化率：</p>
+<p><span class="math display">\[
+\omega_i(t)=\frac{d\theta_i(t)}{dt}
+\]</span></p>
+<p>所以说 PLL 跟踪相位，并不是说输入端直接送来了 <span class="math inline">\(\theta_i(t)\)</span>，而是说 PLL 从电压波形中估计出 <span class="math inline">\(\theta_i(t)\)</span> 和本地相位 <span class="math inline">\(\theta_l(t)\)</span> 的差。</p>
+<p>基本做法是：本地 NCO 产生两路正交载波</p>
+<p><span class="math display">\[
+\cos\theta_l(t),\qquad \sin\theta_l(t)
+\]</span></p>
+<p>输入电压分别与这两路本地载波相乘、低通或积分后，得到 I/Q 分量。忽略高频项后，可以近似写成</p>
+<p><span class="math display">\[
+I\approx A\cos\left[\theta_i(t)-\theta_l(t)\right]+n_I
+\]</span></p>
+<p><span class="math display">\[
+Q\approx A\sin\left[\theta_i(t)-\theta_l(t)\right]+n_Q
+\]</span></p>
+<p>于是电压波形里的相位差就变成了 I/Q 平面中的矢量角度：</p>
+<p><span class="math display">\[
+\hat{\phi}=\operatorname{atan2}(Q,I)\approx\theta_i(t)-\theta_l(t)
+\]</span></p>
+<p>在小相位误差时，也常用更简单的鉴相器，例如 <span class="math inline">\(Q/I\)</span>、<span class="math inline">\(\operatorname{sign}(I)Q\)</span> 或 <span class="math inline">\(IQ\)</span> 型鉴相器。它们本质上都是把“电压波形与本地载波的相对位置”变成一个相位误差信号。环路滤波器再根据这个误差调整 NCO 的频率控制字；NCO 把频率控制量积分成相位，所以最后表现为本地相位 <span class="math inline">\(\theta_l(t)\)</span> 逐渐贴住输入相位 <span class="math inline">\(\theta_i(t)\)</span>。</p>
+<p>也就是说，PLL 的信号转换链路可以概括为：</p>
+<p><span class="math display">\[
+\text{输入电压波形}
+\rightarrow \text{本地正交混频/积分}
+\rightarrow (I,Q)
+\rightarrow \text{鉴相器}
+\rightarrow \hat{\theta}(t)
+\]</span></p>
+<p>这个视角也能解释为什么“幅度噪声”会变成“相位噪声”。加性噪声先叠加在电压幅度上；经过 I/Q 提取后，沿着信号矢量方向的噪声主要表现为幅度扰动，而垂直于信号矢量方向的噪声会改变矢量角度，直接表现为相位扰动。在高信噪比、小误差条件下，这个角度扰动近似为</p>
+<p><span class="math display">\[
+\delta\theta\approx\frac{n_Q}{A}
+\]</span></p>
+<p>其中 <span class="math inline">\(n_Q\)</span> 是正交方向上的噪声分量。这和过零点推导得到的 <span class="math inline">\(\Delta\theta\approx -n(t)/A\)</span> 是同一个思想：垂直方向的电压扰动除以信号幅度或局部斜率，就变成了等效相位扰动。</p>
+<figure>
+<img src="assets/figures/fig-4-31-additive-gaussian-noise-phase.png" alt="图 4.31 加性高斯白噪声对载波相位的影响" /><figcaption aria-hidden="true">图 4.31 加性高斯白噪声对载波相位的影响</figcaption>
+</figure>
+<p>图 4.31 中左上部分为一个纯净的正弦波信号 <span class="math inline">\(A\sin(\omega_0t+\varphi)\)</span>，右上部分为一个高斯白噪声，服从 <span class="math inline">\(N(0,\sigma^2)\)</span> 分布，左下部分为两者叠加以后的混合信号。可以看到，此时正弦波信号上出现很多“毛刺”。右下部分为混合信号在零点附近的局部细节图，中间黑实线为原来的干净正弦波信号，用来做对比。原来的正弦波信号过零点的时刻是确定的，但由于噪声的叠加，混合信号过零点的时刻呈随机变化，不再是一个确定时刻，而是一个“模糊带”，这个模糊带的宽度大小就表示了相位抖动的大小。</p>
+<p>对于一定幅度的正弦波信号 <span class="math inline">\(A\sin(\omega_0t+\varphi)\)</span>，如果叠加了高斯白噪声 <span class="math inline">\(n(t)\sim N(0,\sigma^2)\)</span>，则混合信号的数学表达式为</p>
+<p><span class="math display">\[
+s(t)=A\sin(\omega_0t+\varphi)+n(t) \tag{4.141}
+\]</span></p>
+<p>如果对 <span class="math inline">\(s(t)\)</span> 的相位进行测量，理论推导表明，由于加性噪声的叠加而产生的相位抖动方差 <span class="math inline">\(\sigma_{\theta n}^2\)</span> 可以表示为</p>
+<p><span class="math display">\[
+\sigma_{\theta n}^2=\frac{1}{2\mathrm{SNR}} \tag{4.142}
+\]</span></p>
+</section>
+<section id="补充问题-1待审核式-4.142-的推导" class="level4">
+<h4>补充问题 1（待审核）：式 (4.142) 的推导</h4>
+<p>式 (4.142) 本质上是一个小噪声近似下的过零点相位抖动公式。加性噪声本来加在幅度上，但在信号过零点附近，幅度扰动会等效造成过零时刻的相位扰动，也就是信号在过零点处抖动。</p>
+<p>设无噪声的正弦信号为 <span class="math inline">\(s_0(t)=A\sin(\omega_0t+\varphi)\)</span>，叠加高斯白噪声后为 <span class="math inline">\(s(t)=A\sin(\omega_0t+\varphi)+n(t)\)</span>，其中白噪声符合零均值高斯分布 <span class="math inline">\(n(t)\sim N(0,\sigma_n^2)\)</span>。</p>
+<p>令 <span class="math inline">\(\theta=\omega_0t+\varphi\)</span>，则信号可以写成 <span class="math inline">\(s(\theta)=A\sin\theta+n\)</span>。现在考虑某一个理想过零点。理想情况下有 <span class="math inline">\(A\sin\theta_0=0\)</span>，所以根据正弦函数的零点公式有 <span class="math inline">\(\theta_0=k\pi\)</span>。加噪声以后，实际检测到的过零点不再是 <span class="math inline">\(\theta_0\)</span>，而是偏移了一个小量 <span class="math inline">\(\Delta\theta\)</span>，即 <span class="math inline">\(\theta=\theta_0+\Delta\theta\)</span>。</p>
+<p>过零条件为 <span class="math inline">\(A\sin(\theta_0+\Delta\theta)+n=0\)</span>。</p>
+<p>因为 <span class="math inline">\(\Delta\theta\)</span> 很小，所以对正弦函数做一阶泰勒展开：</p>
+<p><span class="math display">\[
+f(a+h)=f(a)+hf&#39;(a)+\frac{h^2}{2!}f&#39;&#39;(a)+\frac{h^3}{3!}f^{(3)}(a)+\cdots
+\]</span></p>
+<p>于是有</p>
+<p><span class="math display">\[
+\sin(\theta_0+\Delta\theta)\approx \sin\theta_0+\Delta\theta\cos\theta_0
+\]</span></p>
+<p>在过零点处 <span class="math inline">\(\sin\theta_0=0\)</span>，因此</p>
+<p><span class="math display">\[
+\sin(\theta_0+\Delta\theta)\approx \Delta\theta\cos\theta_0
+\]</span></p>
+<p>又因为 <span class="math inline">\(\theta_0=k\pi\)</span>，所以 <span class="math inline">\(\cos\theta_0=\pm1\)</span>。过零条件变成 <span class="math inline">\(A\Delta\theta\cos\theta_0+n=0\)</span>，因此 <span class="math inline">\(\Delta\theta=-\frac{n}{A\cos\theta_0}\)</span>。由于 <span class="math inline">\(\cos\theta_0=\pm1\)</span>，所以有 <span class="math inline">\(\Delta\theta=\pm\frac{n}{A}\)</span>。</p>
+<p>符号不影响方差，因此相位抖动的方差为</p>
+<p><span class="math display">\[
+\sigma_{\theta n}^2
+=\operatorname{Var}(\Delta\theta)
+=\operatorname{Var}\left(\frac{n}{A}\right)
+\]</span></p>
+<p>因为 <span class="math inline">\(A\)</span> 是确定的幅度，所以 <span class="math inline">\(\sigma_{\theta n}^2=\frac{\sigma_n^2}{A^2}\)</span>。</p>
+<p>继续写成信噪比形式。正弦信号 <span class="math inline">\(A\sin(\omega_0t+\varphi)\)</span> 的平均功率为 <span class="math inline">\(P_s=\frac{A^2}{2}\)</span>，噪声功率为 <span class="math inline">\(P_n=\sigma_n^2\)</span>。</p>
+<p>信噪比定义为</p>
+<p><span class="math display">\[
+\mathrm{SNR}=\frac{P_s}{P_n}
+=\frac{A^2/2}{\sigma_n^2}
+=\frac{A^2}{2\sigma_n^2}
+\]</span></p>
+<p>因此 <span class="math inline">\(\frac{\sigma_n^2}{A^2}=\frac{1}{2\mathrm{SNR}}\)</span>。</p>
+<p>可以得到式 (4.142)：</p>
+<p><span class="math display">\[
+\sigma_{\theta n}^2=\frac{1}{2\mathrm{SNR}}
+\]</span></p>
+<p>这里的关键是小噪声和小相位偏移近似。如果噪声太大，过零点不再只是在理想零点附近轻微移动，而可能出现错误过零点、周跳或鉴相器非线性区问题，这时这个线性近似就不能直接使用。</p>
+<p>这里 <span class="math inline">\(\mathrm{SNR}\)</span> 为混合信号的信噪比，即 <span class="math inline">\(\mathrm{SNR}=\frac{P_s}{P_n}\)</span>，<span class="math inline">\(P_s\)</span> 和 <span class="math inline">\(P_n\)</span> 分别是信号和噪声的功率。</p>
+</section>
+</section>
+<section id="考虑加性噪声的线性锁相环框图" class="level3">
+<h3>2. 考虑加性噪声的线性锁相环框图</h3>
+<p>图 4.32 所示是考虑了叠加噪声以后的锁相环框图。注意：这里白噪声 <span class="math inline">\(n(t)\)</span> 加在鉴相器之后，而实际中噪声混加在输入信号里，即鉴相器之前。一般说来，常用的鉴相器是乘法器，输入信号通过鉴相器就是和本地载波信号做相乘运算，所以鉴相器对噪声的影响只是改变了噪声相位，而噪声功率谱和噪声分布都没有改变，所以这个等效是有意义的。这里引入这个等效的目的是使后续的分析更简便。</p>
+<section id="补充问题-3待审核为什么常用的鉴相器是乘法器" class="level4">
+<h4>补充问题 3（待审核）：为什么常用的鉴相器是乘法器</h4>
+<p>乘法器鉴相器的基本原理是把两个信号相乘。数学上，乘积可以由积化和差公式分为高频分量和低频分量；用低通滤波器把高频分量滤掉后，剩下的低频分量只和频率差或相位差有关。</p>
+<p>设输入信号为</p>
+<p><span class="math display">\[
+r(t)=A\sin(\omega_0t+\varphi)+n(t)
+\]</span></p>
+<p>本地载波为</p>
+<p><span class="math display">\[
+v(t)=B\cos(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>乘法器混频输出为</p>
+<p><span class="math display">\[
+u(t)=r(t)v(t)
+=\left[A\sin(\omega_0t+\varphi)+n(t)\right]B\cos(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>展开可得</p>
+<p><span class="math display">\[
+u(t)=AB\sin(\omega_0t+\varphi)\cos(\omega_0t+\hat{\varphi})
++Bn(t)\cos(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>先看信号项。利用积化和差公式</p>
+<p><span class="math display">\[
+\sin x\cos y=\frac{1}{2}\left[\sin(x+y)+\sin(x-y)\right]
+\]</span></p>
+<p>有</p>
+<p><span class="math display">\[
+AB\sin(\omega_0t+\varphi)\cos(\omega_0t+\hat{\varphi})
+=\frac{AB}{2}\sin(2\omega_0t+\varphi+\hat{\varphi})
++\frac{AB}{2}\sin(\varphi-\hat{\varphi})
+\]</span></p>
+<p>现在前提条件是本地载波频率已经和输入信号频率相同，那么低通滤波器会滤掉 <span class="math inline">\(2\omega_0\)</span> 附近的高频项，只留下相位差相关项。令相位误差为</p>
+<p><span class="math display">\[
+\theta_e=\varphi-\hat{\varphi}
+\]</span></p>
+<p>经过低通滤波器后的鉴相器输出为</p>
+<p><span class="math display">\[
+u_d(t)=\frac{AB}{2}\sin\theta_e+\eta(t)
+\]</span></p>
+<p>其中 <span class="math inline">\(\eta(t)\)</span> 是乘法器和低通滤波后留下来的等效噪声。当锁相环已经接近锁定时，相位误差很小，根据等价无穷小有</p>
+<p><span class="math display">\[
+\sin\theta_e\approx\theta_e
+\]</span></p>
+<p>所以输出可以写为</p>
+<p><span class="math display">\[
+u_d(t)\approx\frac{AB}{2}\theta_e+\eta(t)
+\]</span></p>
+<p>鉴相器增益为</p>
+<p><span class="math display">\[
+K_d=\frac{AB}{2}
+\]</span></p>
+<p>于是</p>
+<p><span class="math display">\[
+u_d(t)\approx K_d\theta_e+\eta(t)
+\]</span></p>
+<p>如果把输出噪声 <span class="math inline">\(\eta(t)\)</span> 等效到输入相位端，就有</p>
+<p><span class="math display">\[
+\theta_n(t)=\frac{\eta(t)}{K_d}
+\]</span></p>
+<p>再看噪声项。如果把噪声分解到本地载波的同相和正交方向，可以写成</p>
+<p><span class="math display">\[
+n(t)=n_c(t)\cos(\omega_0t+\hat{\varphi})-n_s(t)\sin(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>其中 <span class="math inline">\(n_c(t)\)</span> 和 <span class="math inline">\(n_s(t)\)</span> 是噪声的两个低频等效分量。那么噪声通过鉴相器中的混频器有</p>
+<p><span class="math display">\[
+n(t)\cos(\omega_0t+\hat{\varphi})
+=n_c(t)\cos^2(\omega_0t+\hat{\varphi})
+-n_s(t)\sin(\omega_0t+\hat{\varphi})\cos(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>利用倍角公式</p>
+<p><span class="math display">\[
+\cos^2x=\frac{1+\cos2x}{2}
+\]</span></p>
+<p>以及</p>
+<p><span class="math display">\[
+\sin x\cos x=\frac{1}{2}\sin2x
+\]</span></p>
+<p>可得</p>
+<p><span class="math display">\[
+n(t)\cos(\omega_0t+\hat{\varphi})
+=\frac{1}{2}n_c(t)
++\frac{1}{2}n_c(t)\cos(2\omega_0t+2\hat{\varphi})
+-\frac{1}{2}n_s(t)\sin(2\omega_0t+2\hat{\varphi})
+\]</span></p>
+<p>再经过低通滤波器，滤掉高频项，只剩下</p>
+<p><span class="math display">\[
+\operatorname{LPF}\{n(t)\cos(\omega_0t+\hat{\varphi})\}
+=\frac{1}{2}n_c(t)
+\]</span></p>
+<p>所以噪声项可写为</p>
+<p><span class="math display">\[
+\eta(t)=\frac{B}{2}n_c(t)
+\]</span></p>
+<p>这里的 <span class="math inline">\(n_c(t)\)</span> 是输入噪声在本地余弦载波方向上的低频投影分量。这个推导说明：乘法器鉴相器把相位差变成低频误差信号，同时也把输入噪声变成鉴相器输出端的等效低频噪声。</p>
+<figure>
+<img src="assets/figures/fig-4-32-noisy-linear-pll.png" alt="图 4.32 考虑了加性噪声的线性锁相环框图" /><figcaption aria-hidden="true">图 4.32 考虑了加性噪声的线性锁相环框图</figcaption>
+</figure>
+</section>
+<section id="补充问题-4待审核图中鉴相器像求和或做减法为什么又说鉴相器是乘法器" class="level4">
+<h4>补充问题 4（待审核）：图中鉴相器像求和或做减法，为什么又说鉴相器是乘法器</h4>
+<p>图 4.32 是线性化后的控制框图。在这个图里，鉴相器被抽象成“输入相位 <span class="math inline">\(\theta_i\)</span> 减去本地相位 <span class="math inline">\(\theta_l\)</span>，得到相位误差 <span class="math inline">\(\hat{\theta}\)</span>”的求和节点。这个求和节点表达的是数学模型中的相位误差关系：</p>
+<p><span class="math display">\[
+\hat{\theta}(t)=\theta_i(t)-\theta_l(t)
+\]</span></p>
+<p>但是在实际 GNSS 接收机中，接收机拿到的不是直接给出的 <span class="math inline">\(\theta_i(t)\)</span>，而是电压波形。因此物理实现上通常要先让本地生成的正交载波与接收信号相乘，再低通或积分，得到 I/Q 两路信号，最后由 I/Q 计算相位误差，例如</p>
+<p><span class="math display">\[
+\theta_e=\arctan\frac{Q}{I}
+\]</span></p>
+<p>所以“求和/减法”描述的是线性化后的相位误差模型，“乘法器”描述的是实际鉴相器如何从电压信号中提取这个相位误差。</p>
+<table>
+<thead>
+<tr class="header">
+<th>鉴相器类型</th>
+<th>核心组成</th>
+<th>输出形式</th>
+<th>常见场景</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>乘法器鉴相器</td>
+<td>乘法器 + 低通</td>
+<td><span class="math inline">\(\sin\theta_e\)</span> 型</td>
+<td>模拟锁相环、通信载波同步</td>
+</tr>
+<tr class="even">
+<td>异或门鉴相器</td>
+<td>XOR + 平均或滤波</td>
+<td>与相位差近似成比例的电压</td>
+<td>方波锁相</td>
+</tr>
+<tr class="odd">
+<td>PFD 鉴频鉴相器</td>
+<td>边沿比较 + 电荷泵</td>
+<td>UP/DOWN 脉冲或电流</td>
+<td>数字 PLL、频率合成器</td>
+</tr>
+<tr class="even">
+<td>I/Q 鉴相器</td>
+<td>正交混频 + 反正切</td>
+<td><span class="math inline">\(\arctan(Q/I)\)</span></td>
+<td>数字接收机、GNSS 跟踪环</td>
+</tr>
+</tbody>
+</table>
+<p>因此，图里的求和节点不是在否定“鉴相器常用乘法器实现”，而是在把乘法器、低通滤波、I/Q 反正切等细节压缩成一个锁定点附近的小信号线性关系。</p>
+</section>
+<section id="补充问题-5待审核vco-控制的是频率为什么框图输出是相位" class="level4">
+<h4>补充问题 5（待审核）：VCO 控制的是频率，为什么框图输出是相位</h4>
+<p>设环路滤波器输出为控制电压 <span class="math inline">\(v_o(t)\)</span>，压控振荡器的瞬时角频率为</p>
+<p><span class="math display">\[
+\omega_o(t)=\omega_0+K_vv_o(t)
+\]</span></p>
+<p>其中 <span class="math inline">\(K_v\)</span> 是 VCO 的角频率灵敏度，单位通常是 <span class="math inline">\(\mathrm{rad/s/V}\)</span>。如果只看相对于中心频率 <span class="math inline">\(\omega_0\)</span> 的频率偏移，则有</p>
+<p><span class="math display">\[
+\Delta\omega_o(t)=K_vv_o(t)
+\]</span></p>
+<p>相位和角频率的关系是</p>
+<p><span class="math display">\[
+\omega_o(t)=\frac{d\theta_o(t)}{dt}
+\]</span></p>
+<p>所以</p>
+<p><span class="math display">\[
+\frac{d\theta_o(t)}{dt}=K_vv_o(t)
+\]</span></p>
+<p>两边积分可得</p>
+<p><span class="math display">\[
+\theta_o(t)=K_v\int v_o(t)\,dt
+\]</span></p>
+<p>做拉普拉斯变换时，图 4.32 画的是传递函数模型，而传递函数默认在零初始条件下定义，也就是只描述输入 <span class="math inline">\(v_o(t)\)</span> 对输出 <span class="math inline">\(\theta_o(t)\)</span> 的作用。如果不忽略初始相位，则</p>
+<p><span class="math display">\[
+s\Theta_o(s)-\theta_o(0)=K_vV_o(s)
+\]</span></p>
+<p>完整结果为</p>
+<p><span class="math display">\[
+\Theta_o(s)=\frac{K_v}{s}V_o(s)+\frac{\theta_o(0)}{s}
+\]</span></p>
+<p>忽略初始相位后有</p>
+<p><span class="math display">\[
+s\Theta_o(s)=K_vV_o(s)
+\]</span></p>
+<p>因此复频域模型为</p>
+<p><span class="math display">\[
+\Theta_o(s)=\frac{K_v}{s}V_o(s)
+\]</span></p>
+<p>这就是框图中 VCO/NCO 常画成 <span class="math inline">\(K/s\)</span> 或 <span class="math inline">\(K_v/s\)</span> 的原因。控制电压控制的是 VCO 的频率，频率再积分得到相位。物理上的 VCO 真正输出仍然是一个载波：</p>
+<p><span class="math display">\[
+x_o(t)=A\cos\left(\omega_0t+\theta_l(t)\right)
+\]</span></p>
+<p>其中 <span class="math inline">\(\theta_l(t)\)</span> 才是图 4.32 中反馈给鉴相器的本地相位。如果控制电压增大，VCO 频率会升高，载波相位的累积会变快，所以本地相位会不断增长。换句话说，VCO 的频率偏差经过积分后就得到相位偏差。</p>
+<p>现在压控振荡器的输入是相差信号 <span class="math inline">\(\hat{\theta}(t)\)</span> 和 <span class="math inline">\(n(t)\)</span>。做类似于 4.2.1 节的分析，可得</p>
+<p><span class="math display">\[
+\theta_l(s)=\theta_i(s)-\hat{\theta}(s)
+=\frac{kF(s)}{s}\left[\hat{\theta}(s)+n(s)\right]
+\]</span></p>
+<p>于是</p>
+<p><span class="math display">\[
+\hat{\theta}(s)
+=\frac{s}{s+kF(s)}\theta_i(s)
+-\frac{kF(s)}{s+kF(s)}n(s)
+\]</span></p>
+<p>也就是</p>
+<p><span class="math display">\[
+\hat{\theta}(s)=E(s)\theta_i(s)-H(s)n(s) \tag{4.143}
+\]</span></p>
+<p>这里 <span class="math inline">\(n(s)\)</span> 是 <span class="math inline">\(n(t)\)</span> 的拉氏变换。</p>
+</section>
+</section>
+<section id="输出相位噪声的两部分" class="level3">
+<h3>3. 输出相位噪声的两部分</h3>
+<p>式 (4.143) 是个很有用的公式，从中可以得出一个结论：在锁相环输入存在白噪声的情况下，输出相位的相位噪声由两部分组成，一部分是由动态应力引起的系统稳态相差，另一部分是由输入的加性噪声导致的随机相差。</p>
+<section id="补充问题-6待审核如何理解动态应力稳态相差和加性噪声随机相差" class="level4">
+<h4>补充问题 6（待审核）：如何理解动态应力稳态相差和加性噪声随机相差</h4>
+<p>“动态应力引起的系统稳态相差”指的是：输入信号本身在变化，而环路跟踪能力有限，由此导致一个确定性的相位滞后。这个误差可以通过终值定理计算。</p>
+<p>锁相环要跟踪输入信号的相位 <span class="math inline">\(\theta_i(t)\)</span>。在 GNSS 接收机中，由于卫星和接收机之间存在相对运动，可能还有相对加速度，相位可能写成</p>
+<p><span class="math display">\[
+\theta_i(t)=\theta_0+\omega_dt+\frac{1}{2}\dot{\omega}_dt^2
+\]</span></p>
+<p>锁相环不是理想系统，其带宽、阶数、响应速度都是有限的，所以不可能完全无误差地跟踪输入相位。于是有</p>
+<p><span class="math display">\[
+\theta_e(t)=\theta_i(t)-\theta_l(t)
+\]</span></p>
+<p>误差中有一部分是因为输入相位变化太快，环路跟踪能力有限，因而存在滞后。系统稳态相差是经过一段时间后环路进入稳定跟踪状态时仍然保留的相位误差。最主要的限制来自环路阶数，例如一阶系统跟踪不了二阶输入，就会出现稳态误差。</p>
+<p>同时，接收信号中还有噪声 <span class="math inline">\(n(t)\)</span>。它加在信号幅度上，经过鉴相器后会等效为相位测量误差。可以用一个直观比喻理解：有一个指针在表盘上转，我们要手动调另一个指针去跟踪它，但调节开关并不完美，会导致指针抖动。如果手调速度够快，就能跟上动态变化，但因为随机抖动还是会有小误差。如果手调速度不够快，即使没有随机抖动，也会有一个稳定的“跟不上”的误差；实际系统中又有随机抖动，因此总误差里还要加上噪声造成的随机部分。</p>
+<p>式 (4.143) 正好把这两部分拆开：</p>
+<p><span class="math display">\[
+\hat{\theta}(s)=E(s)\theta_i(s)-H(s)n(s)
+\]</span></p>
+<p>第一部分 <span class="math inline">\(E(s)\theta_i(s)\)</span> 表示输入相位 <span class="math inline">\(\theta_i(s)\)</span> 通过误差传递函数 <span class="math inline">\(E(s)\)</span> 后，在输出相位误差中留下的确定性部分；第二部分 <span class="math inline">\(-H(s)n(s)\)</span> 表示噪声 <span class="math inline">\(n(s)\)</span> 通过闭环噪声传递函数 <span class="math inline">\(H(s)\)</span> 后，在相位误差中形成的随机分量。</p>
+<p>负号只表示误差定义的方向，对随机相差的方差没有影响。真正重要的是：动态应力看 <span class="math inline">\(E(s)\)</span>，热噪声看 <span class="math inline">\(H(s)\)</span> 和 <span class="math inline">\(B_n\)</span>。</p>
+<p>系统稳态相差已经在 4.2.1 节中详细讨论过。由式 (4.140) 可以看出，只要锁相环输入信号中存在相位的高阶动态应力，系统稳态相差总是存在的，即使输入信号是非常干净的正弦波依然会有稳态相差。</p>
+</section>
+<section id="补充问题-7待审核相位的高阶动态应力是什么" class="level4">
+<h4>补充问题 7（待审核）：相位的高阶动态应力是什么</h4>
+<p>相位的高阶动态应力，本质上是输入相位随时间变化时出现了高阶项。它可以来自相位的一阶导数，也就是频率；也可以来自相位的二阶导数，也就是频率变化率；还可以来自相位的三阶导数，也就是频率变化率的变化率。</p>
+<p>如果输入相位为</p>
+<p><span class="math display">\[
+\theta_i(t)=\Delta\omega t
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\frac{d\theta_i(t)}{dt}=\Delta\omega
+\]</span></p>
+<p>这表示输入信号有一个恒定频偏，相位会线性累积。</p>
+<p>如果输入相位为</p>
+<p><span class="math display">\[
+\theta_i(t)=\frac{1}{2}\alpha t^2
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\frac{d\theta_i(t)}{dt}=\alpha t
+\]</span></p>
+<p>这表示输入频率随时间线性变化，也就是频率在漂移。</p>
+<p>如果输入相位为</p>
+<p><span class="math display">\[
+\theta_i(t)=\frac{1}{6}\beta t^3
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\frac{d\theta_i(t)}{dt}=\frac{1}{2}\beta t^2
+\]</span></p>
+<p>这表示频率变化率不是常数。</p>
+<p>从多普勒角度看，载波相位可以写成</p>
+<p><span class="math display">\[
+\theta_i(t)=2\pi\int_0^t f_D(\tau)\,d\tau
+\]</span></p>
+<p>其中 <span class="math inline">\(f_D(t)\)</span> 是多普勒频移。</p>
+<p>如果多普勒为常数</p>
+<p><span class="math display">\[
+f_D(t)=f_{D0}
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\theta_i(t)=2\pi f_{D0}t
+\]</span></p>
+<p>也就是相位线性变化。</p>
+<p>如果多普勒随时间线性变化</p>
+<p><span class="math display">\[
+f_D(t)=f_{D0}+\dot{f}_Dt
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\theta_i(t)=2\pi\left(f_{D0}t+\frac{1}{2}\dot{f}_Dt^2\right)
+\]</span></p>
+<p>相位中出现了二次项。</p>
+<p>如果多普勒的变化率还在变化</p>
+<p><span class="math display">\[
+f_D(t)=f_{D0}+\dot{f}_Dt+\frac{1}{2}\ddot{f}_Dt^2
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\theta_i(t)=2\pi\left(f_{D0}t+\frac{1}{2}\dot{f}_Dt^2+\frac{1}{6}\ddot{f}_Dt^3\right)
+\]</span></p>
+<p>相位中就出现了三次项。</p>
+<p>因此，“相位的高阶动态应力”不是一个额外神秘的物理量，而是输入相位中更高阶的时间变化项。环路阶数越低，对这些高阶项的稳态跟踪能力越弱。</p>
+</section>
+<section id="补充问题-8待审核干净正弦波仍有稳态相差来源是哪一项" class="level4">
+<h4>补充问题 8（待审核）：干净正弦波仍有稳态相差，来源是哪一项</h4>
+<p>如果输入信号非常干净，没有加性噪声，则式 (4.143) 中的噪声项为零：</p>
+<p><span class="math display">\[
+n(s)=0
+\]</span></p>
+<p>此时相位误差退化为</p>
+<p><span class="math display">\[
+\hat{\theta}(s)=E(s)\theta_i(s)
+\]</span></p>
+<p>所以，即使输入信号是非常干净的正弦波，只要输入相位 <span class="math inline">\(\theta_i(t)\)</span> 含有环路不能完全跟踪的动态项，稳态相差仍然会来自</p>
+<p><span class="math display">\[
+E(s)\theta_i(s)
+\]</span></p>
+<p>这就是教材里说“只要锁相环输入信号中存在相位的高阶动态应力，系统稳态相差总是存在”的原因。</p>
+<p>随机相差则由噪声引起，式 (4.143) 中的最后一项就是由输入噪声产生的相位误差分量。仔细观察式 (4.143) 中的表达式形式，可以看出随机相差类似于输入噪声 <span class="math inline">\(n(t)\)</span> 经过一个传递函数为 <span class="math inline">\(H(s)\)</span> 的线性系统。假设 <span class="math inline">\(n(t)\)</span> 的单边功率谱密度为 <span class="math inline">\(N_0\)</span>，则该线性系统输出的噪声信号均方值为</p>
+<p><span class="math display">\[
+\sigma_H^2(s)=\int_0^\infty \left|H(j2\pi f)\right|^2N_0\,df \tag{4.144}
+\]</span></p>
+</section>
+</section>
+<section id="随机相差方差和噪声带宽折中" class="level3">
+<h3>4. 随机相差方差和噪声带宽折中</h3>
+<p>运用式 (4.142) 的结论，当锁相环的输入信号功率为 <span class="math inline">\(P_i\)</span> 时，随机相差引起的相位抖动方差为</p>
+<p><span class="math display">\[
+\delta\theta_n^2
+=\frac{\sigma_H^2(s)}{2P_i}
+=\frac{N_0}{2P_i}\int_0^\infty \left|H(j2\pi f)\right|^2\,df
+\]</span></p>
+<p>结合上式和锁相环等效噪声带宽 <span class="math inline">\(B_n\)</span> 的定义可得</p>
+<p><span class="math display">\[
+\delta\theta_n^2=\frac{N_0B_n}{2P_i} \tag{4.145}
+\]</span></p>
+<p>由以上分析可知，系统稳态相差和误差传递函数 <span class="math inline">\(E(s)\)</span> 正相关，而加性噪声导致的随机相差和闭环系统传递函数 <span class="math inline">\(H(s)\)</span> 正相关。于是，减小噪声带宽 <span class="math inline">\(B_n\)</span> 能减小随机相差，但会增大稳态相差；增大噪声带宽 <span class="math inline">\(B_n\)</span> 能减小稳态相差，却会使随机相差恶化。随机相差和稳态相差的要求相互矛盾，设计者必须在两者间折中考虑。</p>
+<section id="补充问题-9待审核为什么-pi-调节器输入为-0-时还能保持输出" class="level4">
+<h4>补充问题 9（待审核）：为什么 PI 调节器输入为 0 时还能保持输出</h4>
+<p>PI 调节的基本原理是积分器累计过去的误差。即使现在误差变为 0，积分状态仍然保留，所以输出还能保持。</p>
+<p>设 PI 调节器输入为误差 <span class="math inline">\(e(t)\)</span>，输出为控制量 <span class="math inline">\(u(t)\)</span>：</p>
+<p><span class="math display">\[
+u(t)=K_pe(t)+K_i\int_0^t e(\tau)\,d\tau
+\]</span></p>
+<p>其中 <span class="math inline">\(K_pe(t)\)</span> 是比例项，只受当前误差影响；<span class="math inline">\(K_i\int_0^t e(\tau)\,d\tau\)</span> 是积分项，会记住过去误差的累计结果。如果误差现在变为 0，即</p>
+<p><span class="math display">\[
+e(t)=0
+\]</span></p>
+<p>则比例项会立刻变为 0：</p>
+<p><span class="math display">\[
+K_pe(t)=0
+\]</span></p>
+<p>但积分项</p>
+<p><span class="math display">\[
+K_i\int_0^t e(\tau)\,d\tau
+\]</span></p>
+<p>包含过去的误差累加，不会因为当前误差为 0 就立刻消失。所以此时有</p>
+<p><span class="math display">\[
+u(t)=0+\text{过去积累下来的积分量}
+\]</span></p>
+<p>从另一个角度分析，令积分项为</p>
+<p><span class="math display">\[
+I(t)=K_i\int_0^t e(\tau)\,d\tau
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+u(t)=K_pe(t)+I(t)
+\]</span></p>
+<p>对积分项求导有</p>
+<p><span class="math display">\[
+\frac{dI(t)}{dt}=K_ie(t)
+\]</span></p>
+<p>这说明当前误差 <span class="math inline">\(e(t)\)</span> 决定的是积分项的变化速度，而不是积分项的当前值。如果从某个时刻 <span class="math inline">\(T\)</span> 开始，误差变为 0，即</p>
+<p><span class="math display">\[
+e(t)=0,\qquad t\ge T
+\]</span></p>
+<p>那么</p>
+<p><span class="math display">\[
+\frac{dI(t)}{dt}=K_ie(t)=0,\qquad t\ge T
+\]</span></p>
+<p>于是积分项不再变化，而不是变为 0：</p>
+<p><span class="math display">\[
+I(t)=\text{常数},\qquad t\ge T
+\]</span></p>
+<p>所以当前时刻误差变为 0，只会让积分项停止变化，而不会让积分项立刻变为 0：</p>
+<p><span class="math display">\[
+I(t)=K_i\int_0^T e(\tau)\,d\tau,\qquad t\ge T
+\]</span></p>
+<p>连续积分项是</p>
+<p><span class="math display">\[
+I(t)=K_i\int_0^t e(\tau)\,d\tau
+\]</span></p>
+<p>在离散系统中，只能每隔 <span class="math inline">\(T\)</span> 秒采样一次误差：</p>
+<p><span class="math display">\[
+t_k=kT
+\]</span></p>
+<p>第 <span class="math inline">\(k\)</span> 次的积分项可以写成</p>
+<p><span class="math display">\[
+I[k]=K_i\int_0^{kT}e(\tau)\,d\tau
+\]</span></p>
+<p>把积分区间拆成第 <span class="math inline">\(k-1\)</span> 次以前的积分与第 <span class="math inline">\(k\)</span> 次新增的部分：</p>
+<p><span class="math display">\[
+I[k]=K_i\int_0^{(k-1)T}e(\tau)\,d\tau
++K_i\int_{(k-1)T}^{kT}e(\tau)\,d\tau
+\]</span></p>
+<p>也就是</p>
+<p><span class="math display">\[
+I[k]=I[k-1]+K_i\int_{(k-1)T}^{kT}e(\tau)\,d\tau
+\]</span></p>
+<p>假设采样足够快，一个采样间隔内的误差近似不变：</p>
+<p><span class="math display">\[
+e(\tau)\approx e[k]
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\int_{(k-1)T}^{kT}e(\tau)\,d\tau\approx e[k]T
+\]</span></p>
+<p>因此</p>
+<p><span class="math display">\[
+I[k]=I[k-1]+K_iTe[k]
+\]</span></p>
+<p>其中 <span class="math inline">\(T\)</span> 就是更新采样误差的周期，可以理解为鉴相器输出误差被送入环路滤波器的更新间隔。故离散 PI 调节器公式为</p>
+<p><span class="math display">\[
+I[k]=I[k-1]+K_iTe[k]
+\]</span></p>
+<p><span class="math display">\[
+u[k]=K_pe[k]+I[k]
+\]</span></p>
+<p>其中 <span class="math inline">\(I[k]\)</span> 是积分项的状态。假设之前有误差为正的时刻：</p>
+<p><span class="math display">\[
+e[1]&gt;0,\qquad e[2]&gt;0,\qquad e[3]&gt;0
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+I[1]=I[0]+K_iTe[1]
+\]</span></p>
+<p><span class="math display">\[
+I[2]=I[1]+K_iTe[2]
+\]</span></p>
+<p><span class="math display">\[
+I[3]=I[2]+K_iTe[3]
+\]</span></p>
+<p>积分项会越来越大。后来系统误差为 0，即</p>
+<p><span class="math display">\[
+e[4]=0
+\]</span></p>
+<p>这时有</p>
+<p><span class="math display">\[
+I[4]=I[3]+K_iT\cdot0=I[3]
+\]</span></p>
+<p>积分项不再累加，但没有消失。于是输出为</p>
+<p><span class="math display">\[
+u[4]=K_p\cdot0+I[4]=I[3]
+\]</span></p>
+<p>这个式子证明了输入误差为 0 时，输出仍然保持的原因。</p>
+<p>实际应用中，第一种实现方式是模拟电路。模拟 PI 调节器常用运算放大器和电容实现，电容两端电压代表积分状态：</p>
+<p><span class="math display">\[
+i_C=C\frac{dv_C}{dt}
+\]</span></p>
+<p>如果有电流持续给电容充电，电容电压就会改变；如果输入电流为 0，理想电容上的电压就会保持不变。模拟电路中，积分项本质上是电容上的电压存储了过去误差的累积结果。真实电容会漏电，运放有偏置电流，所以实际中不是无限时间的完美保持，但在环路的工作时间尺度内可以近似保持。</p>
+<p>第二种实现方式是数字系统。在数字 PLL、DSP、MATLAB、FPGA 中，积分项就是一个变量或寄存器，例如</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>I <span class="op">=</span> I <span class="op">+</span> Ki <span class="op">*</span> T <span class="op">*</span> phase_error<span class="op">;</span></span></code></pre></div>
+<p>每个采样时刻更新一次：</p>
+<p><span class="math display">\[
+I[k]=I[k-1]+K_iTe[k]
+\]</span></p>
+<p>如果当前误差为 0：</p>
+<p><span class="math display">\[
+I[k]=I[k-1]
+\]</span></p>
+<p>它就保持之前的值不变。因此在数字实现中，确实可以理解为“把积分状态存在变量或寄存器中”，每次环路更新时再根据新的相位误差做累加。</p>
+<p>北斗和 GPS 接收机中的跟踪环在实现形式上要比图 4.32 复杂得多，相应的环路噪声分析也要困难得多，但将其线性化后，其最根本的结构还是基本的锁相环结构。除了上面分析的随机相差和稳态相差对相位的影响外，时钟抖动（Clock Jitter）对跟踪环路的影响也不可忽略，这会导致 GPS 接收机对时钟稳定性要求很高。关于时钟抖动的影响，限于篇幅，这里不详细赘述，有兴趣的读者可以参看参考文献 [9] 的第 5 章和参考文献 [8] 的第 12 章内容。</p>
+<p>下面两节将对北斗和 GPS 接收机中的载波跟踪环和伪码跟踪环做详细说明。由于两个环路相互耦合，两个环路的参数会互相影响环路的性能，所以对两个环路同时分析是十分困难的。本书将采用各个击破的方式，在分析载波环时假设伪码相位已经对齐，在分析伪码环时假设载波相位已经被稳定锁定，这样会使分析大大简化，同时和实际中环路锁定时的稳态情况相符。</p>
+</section>
+</section>
+</section>
+<section id="二补充问题索引" class="level2">
+<h2>二、补充问题索引</h2>
+<p>补充笔记围绕这一节提出并展开了以下问题：</p>
+<ol type="1">
+<li>式 (4.142) 的推导。</li>
+<li>输入明明是电压，为什么 PLL 说自己在跟踪相位。</li>
+<li>为什么常用的鉴相器是乘法器。</li>
+<li>图中鉴相器像求和或做减法，为什么又说鉴相器是乘法器。</li>
+<li>VCO 控制的是频率，为什么框图输出是相位。</li>
+<li>如何理解动态应力稳态相差和加性噪声随机相差。</li>
+<li>相位的高阶动态应力是什么。</li>
+<li>干净正弦波仍有稳态相差，来源是哪一项。</li>
+<li>为什么 PI 调节器输入为 0 时还能保持输出。</li>
+</ol>
+</section>
+<section id="三补充分析完整整理" class="level2">
+<h2>三、补充分析完整整理</h2>
+<section id="式-4.142-的推导" class="level3">
+<h3>1. 式 (4.142) 的推导</h3>
+<p>式 (4.142) 本质上是一个小噪声近似下的过零点相位抖动公式。加性噪声本来加在幅度上，但在信号过零点附近，幅度扰动会等效造成过零时刻的相位扰动，也就是信号在过零点处抖动。</p>
+<p>设无噪声的正弦信号为 <span class="math inline">\(s_0(t)=A\sin(\omega_0t+\varphi)\)</span>，叠加高斯白噪声后为 <span class="math inline">\(s(t)=A\sin(\omega_0t+\varphi)+n(t)\)</span>，其中白噪声符合零均值高斯分布 <span class="math inline">\(n(t)\sim N(0,\sigma_n^2)\)</span>。</p>
+<p>令 <span class="math inline">\(\theta=\omega_0t+\varphi\)</span>，则信号可以写成 <span class="math inline">\(s(\theta)=A\sin\theta+n\)</span>。现在考虑某一个理想过零点。理想情况下有 <span class="math inline">\(A\sin\theta_0=0\)</span>，所以根据正弦函数的零点公式有 <span class="math inline">\(\theta_0=k\pi\)</span>。加噪声以后，实际检测到的过零点不再是 <span class="math inline">\(\theta_0\)</span>，而是偏移了一个小量 <span class="math inline">\(\Delta\theta\)</span>，即 <span class="math inline">\(\theta=\theta_0+\Delta\theta\)</span>。</p>
+<p>过零条件为 <span class="math inline">\(A\sin(\theta_0+\Delta\theta)+n=0\)</span>。</p>
+<p>因为 <span class="math inline">\(\Delta\theta\)</span> 很小，所以对正弦函数做一阶泰勒展开：</p>
+<p><span class="math display">\[
+f(a+h)=f(a)+hf&#39;(a)+\frac{h^2}{2!}f&#39;&#39;(a)+\frac{h^3}{3!}f^{(3)}(a)+\cdots
+\]</span></p>
+<p>于是有</p>
+<p><span class="math display">\[
+\sin(\theta_0+\Delta\theta)\approx \sin\theta_0+\Delta\theta\cos\theta_0
+\]</span></p>
+<p>在过零点处 <span class="math inline">\(\sin\theta_0=0\)</span>，因此</p>
+<p><span class="math display">\[
+\sin(\theta_0+\Delta\theta)\approx \Delta\theta\cos\theta_0
+\]</span></p>
+<p>又因为 <span class="math inline">\(\theta_0=k\pi\)</span>，所以 <span class="math inline">\(\cos\theta_0=\pm1\)</span>。过零条件变成 <span class="math inline">\(A\Delta\theta\cos\theta_0+n=0\)</span>，因此 <span class="math inline">\(\Delta\theta=-\frac{n}{A\cos\theta_0}\)</span>。由于 <span class="math inline">\(\cos\theta_0=\pm1\)</span>，所以有 <span class="math inline">\(\Delta\theta=\pm\frac{n}{A}\)</span>。</p>
+<p>符号不影响方差，因此相位抖动的方差为</p>
+<p><span class="math display">\[
+\sigma_{\theta n}^2
+=\operatorname{Var}(\Delta\theta)
+=\operatorname{Var}\left(\frac{n}{A}\right)
+\]</span></p>
+<p>因为 <span class="math inline">\(A\)</span> 是确定的幅度，所以 <span class="math inline">\(\sigma_{\theta n}^2=\frac{\sigma_n^2}{A^2}\)</span>。</p>
+<p>继续写成信噪比形式。正弦信号 <span class="math inline">\(A\sin(\omega_0t+\varphi)\)</span> 的平均功率为 <span class="math inline">\(P_s=\frac{A^2}{2}\)</span>，噪声功率为 <span class="math inline">\(P_n=\sigma_n^2\)</span>。</p>
+<p>信噪比定义为</p>
+<p><span class="math display">\[
+\mathrm{SNR}=\frac{P_s}{P_n}
+=\frac{A^2/2}{\sigma_n^2}
+=\frac{A^2}{2\sigma_n^2}
+\]</span></p>
+<p>因此 <span class="math inline">\(\frac{\sigma_n^2}{A^2}=\frac{1}{2\mathrm{SNR}}\)</span>。</p>
+<p>可以得到式 (4.142)：</p>
+<p><span class="math display">\[
+\sigma_{\theta n}^2=\frac{1}{2\mathrm{SNR}}
+\]</span></p>
+<p>这里的关键是小噪声和小相位偏移近似。如果噪声太大，过零点不再只是在理想零点附近轻微移动，而可能出现错误过零点、周跳或鉴相器非线性区问题，这时这个线性近似就不能直接使用。</p>
+</section>
+<section id="输入明明是电压为什么-pll-说自己在跟踪相位" class="level3">
+<h3>2. 输入明明是电压，为什么 PLL 说自己在跟踪相位</h3>
+<p>实际进入接收机 ADC 或模拟前端的量当然是电压波形，而不是一个直接写在接口上的“相位值”。但对一个载波来说，电压波形可以写成</p>
+<p><span class="math display">\[
+r(t)=A(t)\cos\theta_i(t)+n(t)
+\]</span></p>
+<p>或者在 GNSS 信号里更完整地写成</p>
+<p><span class="math display">\[
+r(t)=A\,C(t)D(t)\cos\theta_i(t)+n(t)
+\]</span></p>
+<p>这里 <span class="math inline">\(r(t)\)</span> 是看得见、采得到的电压；<span class="math inline">\(\theta_i(t)\)</span> 是藏在这个电压波形里的载波相位状态。相位不是另一个独立输入端口，而是决定“这个正弦波在时间轴上平移到哪里”的参数。频率则是相位的变化率：</p>
+<p><span class="math display">\[
+\omega_i(t)=\frac{d\theta_i(t)}{dt}
+\]</span></p>
+<p>所以说 PLL 跟踪相位，并不是说输入端直接送来了 <span class="math inline">\(\theta_i(t)\)</span>，而是说 PLL 从电压波形中估计出 <span class="math inline">\(\theta_i(t)\)</span> 和本地相位 <span class="math inline">\(\theta_l(t)\)</span> 的差。</p>
+<p>基本做法是：本地 NCO 产生两路正交载波</p>
+<p><span class="math display">\[
+\cos\theta_l(t),\qquad \sin\theta_l(t)
+\]</span></p>
+<p>输入电压分别与这两路本地载波相乘、低通或积分后，得到 I/Q 分量。忽略高频项后，可以近似写成</p>
+<p><span class="math display">\[
+I\approx A\cos\left[\theta_i(t)-\theta_l(t)\right]+n_I
+\]</span></p>
+<p><span class="math display">\[
+Q\approx A\sin\left[\theta_i(t)-\theta_l(t)\right]+n_Q
+\]</span></p>
+<p>于是电压波形里的相位差就变成了 I/Q 平面中的矢量角度：</p>
+<p><span class="math display">\[
+\hat{\phi}=\operatorname{atan2}(Q,I)\approx\theta_i(t)-\theta_l(t)
+\]</span></p>
+<p>在小相位误差时，也常用更简单的鉴相器，例如 <span class="math inline">\(Q/I\)</span>、<span class="math inline">\(\operatorname{sign}(I)Q\)</span> 或 <span class="math inline">\(IQ\)</span> 型鉴相器。它们本质上都是把“电压波形与本地载波的相对位置”变成一个相位误差信号。环路滤波器再根据这个误差调整 NCO 的频率控制字；NCO 把频率控制量积分成相位，所以最后表现为本地相位 <span class="math inline">\(\theta_l(t)\)</span> 逐渐贴住输入相位 <span class="math inline">\(\theta_i(t)\)</span>。</p>
+<p>也就是说，PLL 的信号转换链路可以概括为：</p>
+<p><span class="math display">\[
+\text{输入电压波形}
+\rightarrow \text{本地正交混频/积分}
+\rightarrow (I,Q)
+\rightarrow \text{鉴相器}
+\rightarrow \hat{\theta}(t)
+\]</span></p>
+<p>这个视角也能解释为什么“幅度噪声”会变成“相位噪声”。加性噪声先叠加在电压幅度上；经过 I/Q 提取后，沿着信号矢量方向的噪声主要表现为幅度扰动，而垂直于信号矢量方向的噪声会改变矢量角度，直接表现为相位扰动。在高信噪比、小误差条件下，这个角度扰动近似为</p>
+<p><span class="math display">\[
+\delta\theta\approx\frac{n_Q}{A}
+\]</span></p>
+<p>其中 <span class="math inline">\(n_Q\)</span> 是正交方向上的噪声分量。这和过零点推导得到的 <span class="math inline">\(\Delta\theta\approx -n(t)/A\)</span> 是同一个思想：垂直方向的电压扰动除以信号幅度或局部斜率，就变成了等效相位扰动。</p>
+</section>
+<section id="为什么常用的鉴相器是乘法器" class="level3">
+<h3>3. 为什么常用的鉴相器是乘法器</h3>
+<p>乘法器鉴相器的基本原理是把两个信号相乘。数学上，乘积可以由积化和差公式分为高频分量和低频分量；用低通滤波器把高频分量滤掉后，剩下的低频分量只和频率差或相位差有关。</p>
+<p>设输入信号为</p>
+<p><span class="math display">\[
+r(t)=A\sin(\omega_0t+\varphi)+n(t)
+\]</span></p>
+<p>本地载波为</p>
+<p><span class="math display">\[
+v(t)=B\cos(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>乘法器混频输出为</p>
+<p><span class="math display">\[
+u(t)=r(t)v(t)
+=\left[A\sin(\omega_0t+\varphi)+n(t)\right]B\cos(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>展开可得</p>
+<p><span class="math display">\[
+u(t)=AB\sin(\omega_0t+\varphi)\cos(\omega_0t+\hat{\varphi})
++Bn(t)\cos(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>先看信号项。利用积化和差公式</p>
+<p><span class="math display">\[
+\sin x\cos y=\frac{1}{2}\left[\sin(x+y)+\sin(x-y)\right]
+\]</span></p>
+<p>有</p>
+<p><span class="math display">\[
+AB\sin(\omega_0t+\varphi)\cos(\omega_0t+\hat{\varphi})
+=\frac{AB}{2}\sin(2\omega_0t+\varphi+\hat{\varphi})
++\frac{AB}{2}\sin(\varphi-\hat{\varphi})
+\]</span></p>
+<p>现在前提条件是本地载波频率已经和输入信号频率相同，那么低通滤波器会滤掉 <span class="math inline">\(2\omega_0\)</span> 附近的高频项，只留下相位差相关项。令相位误差为</p>
+<p><span class="math display">\[
+\theta_e=\varphi-\hat{\varphi}
+\]</span></p>
+<p>经过低通滤波器后的鉴相器输出为</p>
+<p><span class="math display">\[
+u_d(t)=\frac{AB}{2}\sin\theta_e+\eta(t)
+\]</span></p>
+<p>其中 <span class="math inline">\(\eta(t)\)</span> 是乘法器和低通滤波后留下来的等效噪声。当锁相环已经接近锁定时，相位误差很小，根据等价无穷小有</p>
+<p><span class="math display">\[
+\sin\theta_e\approx\theta_e
+\]</span></p>
+<p>所以输出可以写为</p>
+<p><span class="math display">\[
+u_d(t)\approx\frac{AB}{2}\theta_e+\eta(t)
+\]</span></p>
+<p>鉴相器增益为</p>
+<p><span class="math display">\[
+K_d=\frac{AB}{2}
+\]</span></p>
+<p>于是</p>
+<p><span class="math display">\[
+u_d(t)\approx K_d\theta_e+\eta(t)
+\]</span></p>
+<p>如果把输出噪声 <span class="math inline">\(\eta(t)\)</span> 等效到输入相位端，就有</p>
+<p><span class="math display">\[
+\theta_n(t)=\frac{\eta(t)}{K_d}
+\]</span></p>
+<p>再看噪声项。如果把噪声分解到本地载波的同相和正交方向，可以写成</p>
+<p><span class="math display">\[
+n(t)=n_c(t)\cos(\omega_0t+\hat{\varphi})-n_s(t)\sin(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>其中 <span class="math inline">\(n_c(t)\)</span> 和 <span class="math inline">\(n_s(t)\)</span> 是噪声的两个低频等效分量。那么噪声通过鉴相器中的混频器有</p>
+<p><span class="math display">\[
+n(t)\cos(\omega_0t+\hat{\varphi})
+=n_c(t)\cos^2(\omega_0t+\hat{\varphi})
+-n_s(t)\sin(\omega_0t+\hat{\varphi})\cos(\omega_0t+\hat{\varphi})
+\]</span></p>
+<p>利用倍角公式</p>
+<p><span class="math display">\[
+\cos^2x=\frac{1+\cos2x}{2}
+\]</span></p>
+<p>以及</p>
+<p><span class="math display">\[
+\sin x\cos x=\frac{1}{2}\sin2x
+\]</span></p>
+<p>可得</p>
+<p><span class="math display">\[
+n(t)\cos(\omega_0t+\hat{\varphi})
+=\frac{1}{2}n_c(t)
++\frac{1}{2}n_c(t)\cos(2\omega_0t+2\hat{\varphi})
+-\frac{1}{2}n_s(t)\sin(2\omega_0t+2\hat{\varphi})
+\]</span></p>
+<p>再经过低通滤波器，滤掉高频项，只剩下</p>
+<p><span class="math display">\[
+\operatorname{LPF}\{n(t)\cos(\omega_0t+\hat{\varphi})\}
+=\frac{1}{2}n_c(t)
+\]</span></p>
+<p>所以噪声项可写为</p>
+<p><span class="math display">\[
+\eta(t)=\frac{B}{2}n_c(t)
+\]</span></p>
+<p>这里的 <span class="math inline">\(n_c(t)\)</span> 是输入噪声在本地余弦载波方向上的低频投影分量。这个推导说明：乘法器鉴相器把相位差变成低频误差信号，同时也把输入噪声变成鉴相器输出端的等效低频噪声。</p>
+</section>
+<section id="图中鉴相器像求和或做减法为什么又说鉴相器是乘法器" class="level3">
+<h3>4. 图中鉴相器像求和或做减法，为什么又说鉴相器是乘法器</h3>
+<p>图 4.32 是线性化后的控制框图。在这个图里，鉴相器被抽象成“输入相位 <span class="math inline">\(\theta_i\)</span> 减去本地相位 <span class="math inline">\(\theta_l\)</span>，得到相位误差 <span class="math inline">\(\hat{\theta}\)</span>”的求和节点。这个求和节点表达的是数学模型中的相位误差关系：</p>
+<p><span class="math display">\[
+\hat{\theta}(t)=\theta_i(t)-\theta_l(t)
+\]</span></p>
+<p>但是在实际 GNSS 接收机中，接收机拿到的不是直接给出的 <span class="math inline">\(\theta_i(t)\)</span>，而是电压波形。因此物理实现上通常要先让本地生成的正交载波与接收信号相乘，再低通或积分，得到 I/Q 两路信号，最后由 I/Q 计算相位误差，例如</p>
+<p><span class="math display">\[
+\theta_e=\arctan\frac{Q}{I}
+\]</span></p>
+<p>所以“求和/减法”描述的是线性化后的相位误差模型，“乘法器”描述的是实际鉴相器如何从电压信号中提取这个相位误差。</p>
+<table>
+<thead>
+<tr class="header">
+<th>鉴相器类型</th>
+<th>核心组成</th>
+<th>输出形式</th>
+<th>常见场景</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>乘法器鉴相器</td>
+<td>乘法器 + 低通</td>
+<td><span class="math inline">\(\sin\theta_e\)</span> 型</td>
+<td>模拟锁相环、通信载波同步</td>
+</tr>
+<tr class="even">
+<td>异或门鉴相器</td>
+<td>XOR + 平均或滤波</td>
+<td>与相位差近似成比例的电压</td>
+<td>方波锁相</td>
+</tr>
+<tr class="odd">
+<td>PFD 鉴频鉴相器</td>
+<td>边沿比较 + 电荷泵</td>
+<td>UP/DOWN 脉冲或电流</td>
+<td>数字 PLL、频率合成器</td>
+</tr>
+<tr class="even">
+<td>I/Q 鉴相器</td>
+<td>正交混频 + 反正切</td>
+<td><span class="math inline">\(\arctan(Q/I)\)</span></td>
+<td>数字接收机、GNSS 跟踪环</td>
+</tr>
+</tbody>
+</table>
+<p>因此，图里的求和节点不是在否定“鉴相器常用乘法器实现”，而是在把乘法器、低通滤波、I/Q 反正切等细节压缩成一个锁定点附近的小信号线性关系。</p>
+</section>
+<section id="vco-控制的是频率为什么框图输出是相位" class="level3">
+<h3>5. VCO 控制的是频率，为什么框图输出是相位</h3>
+<p>设环路滤波器输出为控制电压 <span class="math inline">\(v_o(t)\)</span>，压控振荡器的瞬时角频率为</p>
+<p><span class="math display">\[
+\omega_o(t)=\omega_0+K_vv_o(t)
+\]</span></p>
+<p>其中 <span class="math inline">\(K_v\)</span> 是 VCO 的角频率灵敏度，单位通常是 <span class="math inline">\(\mathrm{rad/s/V}\)</span>。如果只看相对于中心频率 <span class="math inline">\(\omega_0\)</span> 的频率偏移，则有</p>
+<p><span class="math display">\[
+\Delta\omega_o(t)=K_vv_o(t)
+\]</span></p>
+<p>相位和角频率的关系是</p>
+<p><span class="math display">\[
+\omega_o(t)=\frac{d\theta_o(t)}{dt}
+\]</span></p>
+<p>所以</p>
+<p><span class="math display">\[
+\frac{d\theta_o(t)}{dt}=K_vv_o(t)
+\]</span></p>
+<p>两边积分可得</p>
+<p><span class="math display">\[
+\theta_o(t)=K_v\int v_o(t)\,dt
+\]</span></p>
+<p>做拉普拉斯变换时，图 4.32 画的是传递函数模型，而传递函数默认在零初始条件下定义，也就是只描述输入 <span class="math inline">\(v_o(t)\)</span> 对输出 <span class="math inline">\(\theta_o(t)\)</span> 的作用。如果不忽略初始相位，则</p>
+<p><span class="math display">\[
+s\Theta_o(s)-\theta_o(0)=K_vV_o(s)
+\]</span></p>
+<p>完整结果为</p>
+<p><span class="math display">\[
+\Theta_o(s)=\frac{K_v}{s}V_o(s)+\frac{\theta_o(0)}{s}
+\]</span></p>
+<p>忽略初始相位后有</p>
+<p><span class="math display">\[
+s\Theta_o(s)=K_vV_o(s)
+\]</span></p>
+<p>因此复频域模型为</p>
+<p><span class="math display">\[
+\Theta_o(s)=\frac{K_v}{s}V_o(s)
+\]</span></p>
+<p>这就是框图中 VCO/NCO 常画成 <span class="math inline">\(K/s\)</span> 或 <span class="math inline">\(K_v/s\)</span> 的原因。控制电压控制的是 VCO 的频率，频率再积分得到相位。物理上的 VCO 真正输出仍然是一个载波：</p>
+<p><span class="math display">\[
+x_o(t)=A\cos\left(\omega_0t+\theta_l(t)\right)
+\]</span></p>
+<p>其中 <span class="math inline">\(\theta_l(t)\)</span> 才是图 4.32 中反馈给鉴相器的本地相位。如果控制电压增大，VCO 频率会升高，载波相位的累积会变快，所以本地相位会不断增长。换句话说，VCO 的频率偏差经过积分后就得到相位偏差。</p>
+</section>
+<section id="如何理解动态应力稳态相差和加性噪声随机相差" class="level3">
+<h3>6. 如何理解动态应力稳态相差和加性噪声随机相差</h3>
+<p>“动态应力引起的系统稳态相差”指的是：输入信号本身在变化，而环路跟踪能力有限，由此导致一个确定性的相位滞后。这个误差可以通过终值定理计算。</p>
+<p>锁相环要跟踪输入信号的相位 <span class="math inline">\(\theta_i(t)\)</span>。在 GNSS 接收机中，由于卫星和接收机之间存在相对运动，可能还有相对加速度，相位可能写成</p>
+<p><span class="math display">\[
+\theta_i(t)=\theta_0+\omega_dt+\frac{1}{2}\dot{\omega}_dt^2
+\]</span></p>
+<p>锁相环不是理想系统，其带宽、阶数、响应速度都是有限的，所以不可能完全无误差地跟踪输入相位。于是有</p>
+<p><span class="math display">\[
+\theta_e(t)=\theta_i(t)-\theta_l(t)
+\]</span></p>
+<p>误差中有一部分是因为输入相位变化太快，环路跟踪能力有限，因而存在滞后。系统稳态相差是经过一段时间后环路进入稳定跟踪状态时仍然保留的相位误差。最主要的限制来自环路阶数，例如一阶系统跟踪不了二阶输入，就会出现稳态误差。</p>
+<p>同时，接收信号中还有噪声 <span class="math inline">\(n(t)\)</span>。它加在信号幅度上，经过鉴相器后会等效为相位测量误差。可以用一个直观比喻理解：有一个指针在表盘上转，我们要手动调另一个指针去跟踪它，但调节开关并不完美，会导致指针抖动。如果手调速度够快，就能跟上动态变化，但因为随机抖动还是会有小误差。如果手调速度不够快，即使没有随机抖动，也会有一个稳定的“跟不上”的误差；实际系统中又有随机抖动，因此总误差里还要加上噪声造成的随机部分。</p>
+<p>式 (4.143) 正好把这两部分拆开：</p>
+<p><span class="math display">\[
+\hat{\theta}(s)=E(s)\theta_i(s)-H(s)n(s)
+\]</span></p>
+<p>第一部分 <span class="math inline">\(E(s)\theta_i(s)\)</span> 表示输入相位 <span class="math inline">\(\theta_i(s)\)</span> 通过误差传递函数 <span class="math inline">\(E(s)\)</span> 后，在输出相位误差中留下的确定性部分；第二部分 <span class="math inline">\(-H(s)n(s)\)</span> 表示噪声 <span class="math inline">\(n(s)\)</span> 通过闭环噪声传递函数 <span class="math inline">\(H(s)\)</span> 后，在相位误差中形成的随机分量。</p>
+<p>负号只表示误差定义的方向，对随机相差的方差没有影响。真正重要的是：动态应力看 <span class="math inline">\(E(s)\)</span>，热噪声看 <span class="math inline">\(H(s)\)</span> 和 <span class="math inline">\(B_n\)</span>。</p>
+</section>
+<section id="相位的高阶动态应力是什么" class="level3">
+<h3>7. 相位的高阶动态应力是什么</h3>
+<p>相位的高阶动态应力，本质上是输入相位随时间变化时出现了高阶项。它可以来自相位的一阶导数，也就是频率；也可以来自相位的二阶导数，也就是频率变化率；还可以来自相位的三阶导数，也就是频率变化率的变化率。</p>
+<p>如果输入相位为</p>
+<p><span class="math display">\[
+\theta_i(t)=\Delta\omega t
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\frac{d\theta_i(t)}{dt}=\Delta\omega
+\]</span></p>
+<p>这表示输入信号有一个恒定频偏，相位会线性累积。</p>
+<p>如果输入相位为</p>
+<p><span class="math display">\[
+\theta_i(t)=\frac{1}{2}\alpha t^2
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\frac{d\theta_i(t)}{dt}=\alpha t
+\]</span></p>
+<p>这表示输入频率随时间线性变化，也就是频率在漂移。</p>
+<p>如果输入相位为</p>
+<p><span class="math display">\[
+\theta_i(t)=\frac{1}{6}\beta t^3
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\frac{d\theta_i(t)}{dt}=\frac{1}{2}\beta t^2
+\]</span></p>
+<p>这表示频率变化率不是常数。</p>
+<p>从多普勒角度看，载波相位可以写成</p>
+<p><span class="math display">\[
+\theta_i(t)=2\pi\int_0^t f_D(\tau)\,d\tau
+\]</span></p>
+<p>其中 <span class="math inline">\(f_D(t)\)</span> 是多普勒频移。</p>
+<p>如果多普勒为常数</p>
+<p><span class="math display">\[
+f_D(t)=f_{D0}
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\theta_i(t)=2\pi f_{D0}t
+\]</span></p>
+<p>也就是相位线性变化。</p>
+<p>如果多普勒随时间线性变化</p>
+<p><span class="math display">\[
+f_D(t)=f_{D0}+\dot{f}_Dt
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\theta_i(t)=2\pi\left(f_{D0}t+\frac{1}{2}\dot{f}_Dt^2\right)
+\]</span></p>
+<p>相位中出现了二次项。</p>
+<p>如果多普勒的变化率还在变化</p>
+<p><span class="math display">\[
+f_D(t)=f_{D0}+\dot{f}_Dt+\frac{1}{2}\ddot{f}_Dt^2
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\theta_i(t)=2\pi\left(f_{D0}t+\frac{1}{2}\dot{f}_Dt^2+\frac{1}{6}\ddot{f}_Dt^3\right)
+\]</span></p>
+<p>相位中就出现了三次项。</p>
+<p>因此，“相位的高阶动态应力”不是一个额外神秘的物理量，而是输入相位中更高阶的时间变化项。环路阶数越低，对这些高阶项的稳态跟踪能力越弱。</p>
+</section>
+<section id="干净正弦波仍有稳态相差来源是哪一项" class="level3">
+<h3>8. 干净正弦波仍有稳态相差，来源是哪一项</h3>
+<p>如果输入信号非常干净，没有加性噪声，则式 (4.143) 中的噪声项为零：</p>
+<p><span class="math display">\[
+n(s)=0
+\]</span></p>
+<p>此时相位误差退化为</p>
+<p><span class="math display">\[
+\hat{\theta}(s)=E(s)\theta_i(s)
+\]</span></p>
+<p>所以，即使输入信号是非常干净的正弦波，只要输入相位 <span class="math inline">\(\theta_i(t)\)</span> 含有环路不能完全跟踪的动态项，稳态相差仍然会来自</p>
+<p><span class="math display">\[
+E(s)\theta_i(s)
+\]</span></p>
+<p>这就是教材里说“只要锁相环输入信号中存在相位的高阶动态应力，系统稳态相差总是存在”的原因。</p>
+</section>
+<section id="为什么-pi-调节器输入为-0-时还能保持输出" class="level3">
+<h3>9. 为什么 PI 调节器输入为 0 时还能保持输出</h3>
+<p>PI 调节的基本原理是积分器累计过去的误差。即使现在误差变为 0，积分状态仍然保留，所以输出还能保持。</p>
+<p>设 PI 调节器输入为误差 <span class="math inline">\(e(t)\)</span>，输出为控制量 <span class="math inline">\(u(t)\)</span>：</p>
+<p><span class="math display">\[
+u(t)=K_pe(t)+K_i\int_0^t e(\tau)\,d\tau
+\]</span></p>
+<p>其中 <span class="math inline">\(K_pe(t)\)</span> 是比例项，只受当前误差影响；<span class="math inline">\(K_i\int_0^t e(\tau)\,d\tau\)</span> 是积分项，会记住过去误差的累计结果。如果误差现在变为 0，即</p>
+<p><span class="math display">\[
+e(t)=0
+\]</span></p>
+<p>则比例项会立刻变为 0：</p>
+<p><span class="math display">\[
+K_pe(t)=0
+\]</span></p>
+<p>但积分项</p>
+<p><span class="math display">\[
+K_i\int_0^t e(\tau)\,d\tau
+\]</span></p>
+<p>包含过去的误差累加，不会因为当前误差为 0 就立刻消失。所以此时有</p>
+<p><span class="math display">\[
+u(t)=0+\text{过去积累下来的积分量}
+\]</span></p>
+<p>从另一个角度分析，令积分项为</p>
+<p><span class="math display">\[
+I(t)=K_i\int_0^t e(\tau)\,d\tau
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+u(t)=K_pe(t)+I(t)
+\]</span></p>
+<p>对积分项求导有</p>
+<p><span class="math display">\[
+\frac{dI(t)}{dt}=K_ie(t)
+\]</span></p>
+<p>这说明当前误差 <span class="math inline">\(e(t)\)</span> 决定的是积分项的变化速度，而不是积分项的当前值。如果从某个时刻 <span class="math inline">\(T\)</span> 开始，误差变为 0，即</p>
+<p><span class="math display">\[
+e(t)=0,\qquad t\ge T
+\]</span></p>
+<p>那么</p>
+<p><span class="math display">\[
+\frac{dI(t)}{dt}=K_ie(t)=0,\qquad t\ge T
+\]</span></p>
+<p>于是积分项不再变化，而不是变为 0：</p>
+<p><span class="math display">\[
+I(t)=\text{常数},\qquad t\ge T
+\]</span></p>
+<p>所以当前时刻误差变为 0，只会让积分项停止变化，而不会让积分项立刻变为 0：</p>
+<p><span class="math display">\[
+I(t)=K_i\int_0^T e(\tau)\,d\tau,\qquad t\ge T
+\]</span></p>
+<p>连续积分项是</p>
+<p><span class="math display">\[
+I(t)=K_i\int_0^t e(\tau)\,d\tau
+\]</span></p>
+<p>在离散系统中，只能每隔 <span class="math inline">\(T\)</span> 秒采样一次误差：</p>
+<p><span class="math display">\[
+t_k=kT
+\]</span></p>
+<p>第 <span class="math inline">\(k\)</span> 次的积分项可以写成</p>
+<p><span class="math display">\[
+I[k]=K_i\int_0^{kT}e(\tau)\,d\tau
+\]</span></p>
+<p>把积分区间拆成第 <span class="math inline">\(k-1\)</span> 次以前的积分与第 <span class="math inline">\(k\)</span> 次新增的部分：</p>
+<p><span class="math display">\[
+I[k]=K_i\int_0^{(k-1)T}e(\tau)\,d\tau
++K_i\int_{(k-1)T}^{kT}e(\tau)\,d\tau
+\]</span></p>
+<p>也就是</p>
+<p><span class="math display">\[
+I[k]=I[k-1]+K_i\int_{(k-1)T}^{kT}e(\tau)\,d\tau
+\]</span></p>
+<p>假设采样足够快，一个采样间隔内的误差近似不变：</p>
+<p><span class="math display">\[
+e(\tau)\approx e[k]
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+\int_{(k-1)T}^{kT}e(\tau)\,d\tau\approx e[k]T
+\]</span></p>
+<p>因此</p>
+<p><span class="math display">\[
+I[k]=I[k-1]+K_iTe[k]
+\]</span></p>
+<p>其中 <span class="math inline">\(T\)</span> 就是更新采样误差的周期，可以理解为鉴相器输出误差被送入环路滤波器的更新间隔。故离散 PI 调节器公式为</p>
+<p><span class="math display">\[
+I[k]=I[k-1]+K_iTe[k]
+\]</span></p>
+<p><span class="math display">\[
+u[k]=K_pe[k]+I[k]
+\]</span></p>
+<p>其中 <span class="math inline">\(I[k]\)</span> 是积分项的状态。假设之前有误差为正的时刻：</p>
+<p><span class="math display">\[
+e[1]&gt;0,\qquad e[2]&gt;0,\qquad e[3]&gt;0
+\]</span></p>
+<p>则</p>
+<p><span class="math display">\[
+I[1]=I[0]+K_iTe[1]
+\]</span></p>
+<p><span class="math display">\[
+I[2]=I[1]+K_iTe[2]
+\]</span></p>
+<p><span class="math display">\[
+I[3]=I[2]+K_iTe[3]
+\]</span></p>
+<p>积分项会越来越大。后来系统误差为 0，即</p>
+<p><span class="math display">\[
+e[4]=0
+\]</span></p>
+<p>这时有</p>
+<p><span class="math display">\[
+I[4]=I[3]+K_iT\cdot0=I[3]
+\]</span></p>
+<p>积分项不再累加，但没有消失。于是输出为</p>
+<p><span class="math display">\[
+u[4]=K_p\cdot0+I[4]=I[3]
+\]</span></p>
+<p>这个式子证明了输入误差为 0 时，输出仍然保持的原因。</p>
+<p>实际应用中，第一种实现方式是模拟电路。模拟 PI 调节器常用运算放大器和电容实现，电容两端电压代表积分状态：</p>
+<p><span class="math display">\[
+i_C=C\frac{dv_C}{dt}
+\]</span></p>
+<p>如果有电流持续给电容充电，电容电压就会改变；如果输入电流为 0，理想电容上的电压就会保持不变。模拟电路中，积分项本质上是电容上的电压存储了过去误差的累积结果。真实电容会漏电，运放有偏置电流，所以实际中不是无限时间的完美保持，但在环路的工作时间尺度内可以近似保持。</p>
+<p>第二种实现方式是数字系统。在数字 PLL、DSP、MATLAB、FPGA 中，积分项就是一个变量或寄存器，例如</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>I <span class="op">=</span> I <span class="op">+</span> Ki <span class="op">*</span> T <span class="op">*</span> phase_error<span class="op">;</span></span></code></pre></div>
+<p>每个采样时刻更新一次：</p>
+<p><span class="math display">\[
+I[k]=I[k-1]+K_iTe[k]
+\]</span></p>
+<p>如果当前误差为 0：</p>
+<p><span class="math display">\[
+I[k]=I[k-1]
+\]</span></p>
+<p>它就保持之前的值不变。因此在数字实现中，确实可以理解为“把积分状态存在变量或寄存器中”，每次环路更新时再根据新的相位误差做累加。</p>
+</section>
+</section>
+<section id="四把-4.2.1-和-4.2.2-合起来记" class="level2">
+<h2>四、把 4.2.1 和 4.2.2 合起来记</h2>
+<table>
+<thead>
+<tr class="header">
+<th>问题</th>
+<th>主要函数</th>
+<th>带宽变化的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>动态应力导致的稳态相差</td>
+<td><span class="math inline">\(E(s)\)</span></td>
+<td>带宽越大，通常越能跟上动态变化</td>
+</tr>
+<tr class="even">
+<td>热噪声导致的随机相差</td>
+<td><span class="math inline">\(H(s)\)</span> / <span class="math inline">\(B_n\)</span></td>
+<td>带宽越大，通过的热噪声越多</td>
+</tr>
+<tr class="odd">
+<td>环路参数设计</td>
+<td><span class="math inline">\(E(s)\)</span> 与 <span class="math inline">\(H(s)\)</span> 的折中</td>
+<td>不能只看动态，也不能只看噪声</td>
+</tr>
+</tbody>
+</table>
+<p>这节最重要的不是单独记住一个噪声公式，而是把上一节的两个传递函数重新赋予工程含义：<span class="math inline">\(E(s)\)</span> 管“还有多少跟不上”，<span class="math inline">\(H(s)\)</span> 管“放进来多少噪声”。环路带宽越窄，随机相差越小，但动态跟踪能力变弱；环路带宽越宽，动态跟踪能力变强，但随机相差恶化。因此，4.2.2 的核心结论就是：热噪声性能和动态应力性能必须一起折中设计。</p>
+</section>
+<section id="五发布说明" class="level2">
+<h2>五、发布说明</h2>
+<p>这份内容对应站点中的一篇独立章节笔记：</p>
+<ol type="1">
+<li>Markdown 源笔记：<code>chapters/第04章_信号捕获和跟踪/笔记/4.2.2 线性锁相环的热噪声性能分析.md</code></li>
+<li>HTML 发布页：<code>site/notes/tracking/chapter-4-2-2-linear-pll-thermal-noise/index.html</code></li>
+<li>主题入口：<code>site/notes/tracking/index.html</code></li>
+</ol>
+<p>为了避免后续维护时内容漂移，新的 4.2.2 内容应优先修改 Markdown 源笔记，再重新生成 HTML 发布页。</p>
+</section>
+</section>
+
+
+
+
+ 
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="footer-panel">
+      <span>© <span data-site-year>
+</span> SHENAO1 · GNSS 学习与项目主页</span>
+      <nav>
+        <a href="../../../index.html">Home</a>
+        <a href="../../index.html">Notes</a>
+        <a href="../../../video-notes/">Video Notes</a>
+      </nav>
+    </footer>
+  </div>
+
+  <script src="../../../assets/scripts/site.js">
+</script>
+  <script>
+    (function () {
+      const toc = document.getElementById('noteToc');
+      const tocShell = document.getElementById('noteTocShell');
+      const headings = Array.from(document.querySelectorAll('.note-prose h3, .note-prose h4'));
+      if (!toc || !headings.length) return;
+
+      const syncTocShell = () => {
+        if (!tocShell) return;
+        if (window.innerWidth <= 1120) {
+          tocShell.removeAttribute('open');
+        } else {
+          tocShell.setAttribute('open', '');
+        }
+      };
+
+      syncTocShell();
+      window.addEventListener('resize', syncTocShell);
+
+      const pairs = headings.map((heading) => {
+        const section = heading.closest('section[id]');
+        if (!section) return null;
+        return { heading, section, level: heading.tagName.toLowerCase() };
+      }).filter(Boolean);
+
+      pairs.forEach(({ heading, section, level }) => {
+        const link = document.createElement('a');
+        link.href = '#' + section.id;
+        link.textContent = heading.textContent;
+        link.className = level === 'h4' ? 'level-3' : 'level-2';
+        toc.appendChild(link);
+      });
+
+      const links = Array.from(toc.querySelectorAll('a'));
+      const updateActive = () => {
+        let activeId = pairs[0] ? pairs[0].section.id : '';
+        pairs.forEach(({ section }) => {
+          if (section.getBoundingClientRect().top <= 160) {
+            activeId = section.id;
+          }
+        });
+        links.forEach((link) => {
+          link.classList.toggle('is-active', link.getAttribute('href') === '#' + activeId);
+        });
+      };
+
+      window.addEventListener('scroll', updateActive, { passive: true });
+      updateActive();
+    }());
+  </script>
+</body>
+</html>
+
