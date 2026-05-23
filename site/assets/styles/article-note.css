@@ -296,6 +296,43 @@
   color: #eff8fb;
 }
 
+.note-prose .pdf-text-block {
+  margin-top: 14px;
+  padding: 18px 20px;
+  border: 1px solid rgba(12, 36, 57, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.note-prose .pdf-text-block > :first-child {
+  margin-top: 0;
+}
+
+.note-prose .pdf-text-block > :last-child {
+  margin-bottom: 0;
+}
+
+.note-prose .pdf-text-block p {
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.note-prose .pdf-text-block pre {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(12, 36, 57, 0.08);
+  border-radius: 14px;
+  background: rgba(12, 36, 57, 0.04);
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-prose .pdf-text-block pre code {
+  color: inherit;
+}
+
 .note-prose table {
   width: 100%;
   margin-top: 14px;
