@@ -318,6 +318,31 @@
   line-height: 1.9;
 }
 
+.note-prose .pdf-text-block .page-break-label {
+  margin-top: 22px;
+  color: var(--cyan-deep);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.note-prose .pdf-text-block .page-break-label:first-child {
+  margin-top: 0;
+}
+
+.note-prose .pdf-text-block .figure-caption-inline {
+  color: var(--muted);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+}
+
+.note-prose .ref-marker {
+  font-size: 0.72em;
+  line-height: 0;
+  vertical-align: super;
+}
+
 .note-prose .pdf-text-block pre {
   margin-top: 14px;
   padding: 14px 16px;
@@ -331,6 +356,28 @@
 
 .note-prose .pdf-text-block pre code {
   color: inherit;
+}
+
+.note-prose .equation-block {
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(12, 36, 57, 0.08);
+  border-radius: 18px;
+  background: rgba(247, 251, 252, 0.9);
+}
+
+.note-prose .equation-line + .equation-line {
+  margin-top: 6px;
+}
+
+.note-prose .equation-line {
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+}
+
+.note-prose .equation-block mjx-container[display="true"] {
+  padding: 8px 0;
 }
 
 .note-prose table {
