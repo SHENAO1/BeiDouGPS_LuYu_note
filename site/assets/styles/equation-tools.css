@@ -1,0 +1,132 @@
+.equation-card {
+  position: relative;
+  display: block;
+  margin: 16px 0;
+  padding: 20px 112px 20px 20px;
+  border: 1px solid rgba(12, 36, 57, 0.1);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(247, 251, 252, 0.86)),
+    radial-gradient(circle at 92% 12%, rgba(26, 179, 179, 0.08), transparent 20%);
+  box-shadow: 0 18px 42px rgba(7, 21, 34, 0.08);
+}
+
+.equation-card .equation-render {
+  display: block;
+  min-width: 0;
+}
+
+.equation-card .equation-copy {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 108px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(12, 36, 57, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0b3550;
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.equation-card .equation-copy:hover {
+  transform: translateY(-1px);
+  background: rgba(26, 179, 179, 0.1);
+  border-color: rgba(26, 179, 179, 0.22);
+}
+
+.equation-card .equation-copy.is-copied {
+  color: #0d6b46;
+  background: rgba(54, 179, 126, 0.12);
+  border-color: rgba(54, 179, 126, 0.24);
+}
+
+.equation-card .equation-copy.is-failed {
+  color: #8b2e17;
+  background: rgba(216, 103, 45, 0.1);
+  border-color: rgba(216, 103, 45, 0.22);
+}
+
+.equation-card .equation-number {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(12, 36, 57, 0.06);
+  color: #0b3550;
+  font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.equation-card mjx-container[display="true"] {
+  display: block;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.equation-card mjx-container[display="true"] svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.equation-card mjx-container:not([display="true"]) {
+  display: inline;
+}
+
+.equation-card.equation {
+  overflow: visible;
+}
+
+.note-prose p > .equation-card,
+.lesson-body p > .equation-card {
+  margin-top: 14px;
+}
+
+.note-prose li > .equation-card,
+.lesson-body li > .equation-card {
+  margin-top: 12px;
+}
+
+@media (max-width: 760px) {
+  .equation-card {
+    padding: 58px 18px 18px;
+  }
+
+  .equation-card .equation-copy {
+    min-width: 96px;
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .equation-card .equation-number {
+    top: 14px;
+    right: 118px;
+    transform: none;
+    min-width: 54px;
+    min-height: 32px;
+    font-size: 11px;
+  }
+}
